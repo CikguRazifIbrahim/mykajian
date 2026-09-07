@@ -1,0 +1,22 @@
+{
+  "name": "MyKajian",
+  "short_name": "MyKajian",
+  "description": "Penjejak tugasan kajian: kalendar, carta Gantt, log progress harian, peringatan lisan dan Helpdesk AI.",
+  "start_url": "./index.html#/papan",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F4F6F5",
+  "theme_color": "#2F5D8A",
+  "lang": "ms",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Isi log hari ini", "url": "./index.html#/log", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Carta Gantt", "url": "./index.html#/gantt", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Widget", "url": "./index.html#widget", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] }
+  ]
+}
