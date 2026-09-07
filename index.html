@@ -296,10 +296,34 @@ body.widget .shell { display: block; }
 .wg .wglist { display: grid; gap: 5px; }
 .wg .wgitem { display: grid; grid-template-columns: 4px 1fr auto; gap: 8px; align-items: center; padding: 6px 8px 6px 0; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
 .wg .wgitem .stripe { align-self: stretch; }
+.wg .wgitem > div { min-width: 0; }
 .wg .wgitem .t { font-weight: 500; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wg .wgitem .s { font-size: 11px; color: var(--muted); }
 .wg .wgfoot { margin-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--muted); }
 .wg.mini .wkstrip, .wg.mini .wglist, .wg.mini .wgfoot { display: none; }
+
+/* ---------- v2.0 ---------- */
+.chip.bab { background: var(--surface-3); color: var(--ink); } .chip.bab.none { background: var(--merah-bg); color: var(--merah); }
+.card.now { border-color: var(--accent); } .card.now.active { box-shadow: inset 4px 0 0 var(--accent); }
+.nowblock .t { font-family: var(--serif); font-size: 19px; font-weight: 600; line-height: 1.25; margin: 2px 0 4px; }
+.daystrip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 4px 0 14px; }
+.daystrip .dayb { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 2px; display: grid; justify-items: center; gap: 1px; font-size: 12px; color: var(--muted); }
+.daystrip .dayb b { font-family: var(--mono); font-size: 16px; color: var(--ink); } .daystrip .dayb.today { border-color: var(--accent); } .daystrip .dayb.sel { background: var(--accent-soft); border-color: var(--accent); }
+.blklist { display: grid; gap: 6px; }
+.blk { display: grid; grid-template-columns: 52px 1fr auto; gap: 10px; align-items: center; border: 1px solid var(--line); border-left: 4px solid var(--umum); border-radius: 8px; padding: 8px 10px; background: var(--surface); }
+.blk.IV { border-left-color: var(--iv); } .blk.DV { border-left-color: var(--dv); } .blk.MED { border-left-color: var(--med); } .blk.UMUM { border-left-color: var(--umum); } .blk.free { border-left-color: var(--line-strong); border-left-style: dashed; }
+.blk.live { background: var(--accent-soft); border-color: var(--accent); } .blk.past { opacity: .6; } .blk.done .t { text-decoration: line-through; color: var(--muted); }
+.blk .tm { font-size: 12.5px; line-height: 1.25; } .blk .t { font-weight: 600; font-size: 14px; } .blk .ac { display: flex; gap: 4px; }
+.brk { font-size: 12px; color: var(--muted); padding: 0 0 0 62px; }
+#jadualGantt { min-height: 320px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+.vis-item.vis-background.workrange { background: var(--accent-soft); opacity: .45; }
+.whgrid { display: grid; gap: 6px; } .whrow { display: grid; grid-template-columns: 78px repeat(3, 1fr); gap: 6px; align-items: center; font-size: 13px; }
+.whslot { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--muted); } .whslot input { padding: 4px 6px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface); width: 100%; min-width: 0; font-size: 12.5px; }
+@media (max-width: 700px) { .whrow { grid-template-columns: 1fr; } .daystrip .dayb .small { display: none; } }
+.wg .wgtabs { display: flex; gap: 4px; margin-bottom: 8px; } .wg .wgtabs button { flex: 1; border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 5px 0; font-size: 12px; } .wg .wgtabs button.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.wg .wgnow { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; } .wg .wgnow.live { background: var(--accent-soft); border-color: var(--accent); } .wg .wgnow .t { font-weight: 600; font-size: 13px; line-height: 1.3; } .wg .wgnow .s { font-size: 11px; color: var(--muted); }
+.wg .wgitem.done .t { color: var(--ink); }
+.wg.mini .wgtabs, .wg.mini .wgnow, .wg.mini .wgarc { display: none; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media print { .nav, .topbar, .tabbar { display: none; } }
 </style>
@@ -316,6 +340,7 @@ body.widget .shell { display: block; }
   </header>
   <nav class="nav" id="nav">
     <a href="#/papan" data-v="papan"><span class="ic">▦</span>Papan pemuka</a>
+    <a href="#/jadual" data-v="jadual"><span class="ic">⏱</span>Jadual jam</a>
     <a href="#/kalendar" data-v="kalendar"><span class="ic">▤</span>Kalendar</a>
     <a href="#/gantt" data-v="gantt"><span class="ic">▬</span>Carta Gantt</a>
     <a href="#/tugasan" data-v="tugasan"><span class="ic">☑</span>Tugasan</a>
@@ -324,7 +349,7 @@ body.widget .shell { display: block; }
     <a href="#/helpdesk" data-v="helpdesk"><span class="ic">✦</span>Helpdesk AI</a>
     <a href="#/tetapan" data-v="tetapan"><span class="ic">⚙</span>Tetapan</a>
     <span class="grow"></span>
-    <div class="navfoot">MyKajian v1.0<br><span id="navMode">Mod tempatan</span></div>
+    <div class="navfoot">MyKajian v2.0<br><span id="navMode">Mod tempatan</span></div>
   </nav>
   <main class="main" id="main">
     <div id="banners"></div>
@@ -332,8 +357,8 @@ body.widget .shell { display: block; }
   </main>
   <nav class="tabbar" id="tabbar">
     <a href="#/papan" data-v="papan"><span class="ic">▦</span>Papan</a>
+    <a href="#/jadual" data-v="jadual"><span class="ic">⏱</span>Jadual</a>
     <a href="#/kalendar" data-v="kalendar"><span class="ic">▤</span>Kalendar</a>
-    <a href="#/gantt" data-v="gantt"><span class="ic">▬</span>Gantt</a>
     <a href="#/log" data-v="log"><span class="ic">✎</span>Log</a>
     <a href="#/tugasan" data-v="tugasan"><span class="ic">☑</span>Tugasan</a>
     <a href="#/helpdesk" data-v="helpdesk"><span class="ic">✦</span>AI</a>
@@ -353,7 +378,7 @@ body.widget .shell { display: block; }
 /* Fasa 2: tampal konfigurasi Firebase di sini ATAU dalam Tetapan apps. */
 const FIREBASE_CONFIG = {"apiKey": "AIzaSyDuDUS6pVbVlTOY9Z2veIodiCxnL-8pOQc", "authDomain": "mykajian-ebe7e.firebaseapp.com", "projectId": "mykajian-ebe7e", "storageBucket": "mykajian-ebe7e.firebasestorage.app", "messagingSenderId": "351646083181", "appId": "1:351646083181:web:cbe520f6168564a6687764"};
 const FIREBASE_VERSION = '12.18.0';
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '2.0.0';
 
 const VARS = {
   IV:   { code: 'IV',   short: 'IV',        name: 'Kepimpinan Digital Guru Besar', role: 'Pembolehubah bebas' },
@@ -362,6 +387,16 @@ const VARS = {
   UMUM: { code: 'UMUM', short: 'Umum',      name: 'Artikel, pentadbiran dan lain-lain', role: 'Tugasan umum' }
 };
 const VAR_ORDER = ['IV', 'DV', 'MED', 'UMUM'];
+const BABS = ['Bab 1', 'Bab 2', 'Bab 3', 'Bab 4', 'Bab 5'];
+const DEFAULT_WORK_HOURS = {
+  0: [['15:00', '16:00'], ['22:00', '23:00']],
+  1: [['08:30', '11:30'], ['15:00', '16:00'], ['22:00', '23:00']],
+  2: [['08:30', '12:30'], ['15:00', '16:00'], ['22:00', '23:00']],
+  3: [['08:30', '12:30'], ['15:00', '16:00'], ['22:00', '23:00']],
+  4: [['08:30', '12:30'], ['15:00', '16:00'], ['22:00', '23:00']],
+  5: [['08:30', '12:00'], ['15:00', '16:00'], ['22:00', '23:00']],
+  6: [['15:00', '16:00'], ['22:00', '23:00']]
+};
 const STATUS_LABEL = { hijau: 'Selesai', kuning: 'Dalam proses', merah: 'Belum selesai' };
 
 const MONTHS = ['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
@@ -386,7 +421,14 @@ const DEFAULT_SETTINGS = {
   theme: 'auto',
   seeded: false,
   firebaseConfig: '',
-  userTitle: 'Prof Dr'
+  userTitle: 'Prof Dr',
+  workHours: DEFAULT_WORK_HOURS,
+  pomodoroWork: 30,
+  pomodoroBreak: 5,
+  sternAlarm: true,
+  breakChime: true,
+  horizonDays: 60,
+  autoSchedule: true
 };
 
 /* ---------- utiliti ---------- */
@@ -433,17 +475,23 @@ function taskStatus(task, logs, today = todayISO()) {
   if (diffDays(l.date, today) > 3) return 'merah';
   return 'kuning';
 }
+function taskVars(t) { const v = Array.isArray(t.variables) && t.variables.length ? t.variables.filter(x => VARS[x]) : (t.variable && VARS[t.variable] ? [t.variable] : ['UMUM']); return v.length ? v : ['UMUM']; }
+function taskVar(t) { return taskVars(t)[0]; }
+function guessBab(t) { const s = ((t.title || '') + ' ' + (t.description || '')).toLowerCase(); if (/instrumen|terjemah|pakar|soal selidik|rintis|sampel|kesahan|kebolehpercayaan|pls|sem/.test(s)) return 'Bab 3'; if (/dapatan|analisis data|keputusan/.test(s)) return 'Bab 4'; if (/perbincangan|implikasi|cadangan/.test(s)) return 'Bab 5'; if (/pengenalan|pernyataan masalah|objektif/.test(s)) return 'Bab 1'; return 'Bab 2'; }
+function taskBab(t) { return BABS.includes(t.bab) ? t.bab : ''; }
+function estimateHours(t) { if (Number(t.estHours) > 0) return Number(t.estHours); const s = ((t.title || '') + ' ' + (t.description || '')).toLowerCase(); if (/instrumen|terjemah|pakar|e-?mel/.test(s)) return 6; if (/icame|persidangan|conference/.test(s)) return 12; if (/kemas ?kini|semak semula|revis/.test(s)) return 20; if (/artikel|manuskrip|jurnal|ipg|bpg|mrj/.test(s)) return 40; if (/bab|tesis/.test(s)) return 60; return 12; }
+function completedDate(t, logs) { const l = logs.filter(x => x.taskId === t.id && Number(x.percent) >= 100).sort((a, b) => a.date.localeCompare(b.date))[0]; return l ? l.date : null; }
 function decorate(tasks, logs) {
   const today = todayISO();
   return tasks.filter(t => !t.archived).map(t => {
-    const pct = taskProgress(t, logs), status = taskStatus(t, logs, today);
-    return Object.assign({}, t, { pct, status, daysToDue: t.due ? diffDays(today, t.due) : null, daysToTarget: t.target ? diffDays(today, t.target) : null, lastLog: latestLog(t, logs) });
+    const pct = taskProgress(t, logs), status = taskStatus(t, logs, today), vars = taskVars(t);
+    return Object.assign({}, t, { pct, status, vars, variable: vars[0], bab: taskBab(t), est: estimateHours(t), daysToDue: t.due ? diffDays(today, t.due) : null, daysToTarget: t.target ? diffDays(today, t.target) : null, lastLog: latestLog(t, logs), doneDate: status === 'hijau' ? completedDate(t, logs) : null });
   });
 }
 
 /* ---------- Store: tempatan ---------- */
 class LocalStore {
-  constructor() { this.mode = 'local'; this.data = Local.get('data', null) || { tasks: [], logs: [], helpdesk: [], settings: {} }; this.listeners = []; this.pending = 0; }
+  constructor() { this.mode = 'local'; this.data = Local.get('data', null) || { tasks: [], logs: [], helpdesk: [], days: [], settings: {} }; this.data.days = this.data.days || []; this.listeners = []; this.pending = 0; }
   async init() { return this; }
   snapshot() { return this.data; }
   onChange(fn) { this.listeners.push(fn); }
@@ -455,13 +503,15 @@ class LocalStore {
   async saveSettings(patch) { this.data.settings = Object.assign({}, this.data.settings, patch); this._save(); }
   async addHelpdesk(h) { this.data.helpdesk.unshift(h); this.data.helpdesk = this.data.helpdesk.slice(0, 60); this._save(); }
   async deleteHelpdesk(id) { this.data.helpdesk = this.data.helpdesk.filter(h => h.id !== id); this._save(); }
+  async upsertDays(list) { for (const d of list) { const i = this.data.days.findIndex(x => x.date === d.date); d.updatedAt = Date.now(); if (i >= 0) this.data.days[i] = d; else this.data.days.push(d); } this._save(); }
+  async deleteDay(date) { this.data.days = this.data.days.filter(d => d.date !== date); this._save(); }
   exportJSON() { return JSON.stringify(Object.assign({ exportedAt: new Date().toISOString(), app: 'MyKajian', version: APP_VERSION }, this.data), null, 2); }
-  async importJSON(obj) { this.data = { tasks: obj.tasks || [], logs: obj.logs || [], helpdesk: obj.helpdesk || [], settings: obj.settings || {} }; this._save(); }
+  async importJSON(obj) { this.data = { tasks: obj.tasks || [], logs: obj.logs || [], helpdesk: obj.helpdesk || [], days: obj.days || [], settings: obj.settings || {} }; this._save(); }
 }
 
 /* ---------- Store: Firestore (awan, luar talian terbina dalam) ---------- */
 class CloudStore {
-  constructor(config) { this.mode = 'cloud'; this.config = config; this.data = { tasks: [], logs: [], helpdesk: [], settings: {} }; this.listeners = []; this.pending = 0; this.user = null; this.ready = false; this.serverReady = {}; this.unsubs = []; this.online = navigator.onLine; }
+  constructor(config) { this.mode = 'cloud'; this.config = config; this.data = { tasks: [], logs: [], helpdesk: [], days: [], settings: {} }; this.listeners = []; this.pending = 0; this.user = null; this.ready = false; this.serverReady = {}; this.unsubs = []; this.online = navigator.onLine; }
   async init() {
     const v = FIREBASE_VERSION, base = `https://www.gstatic.com/firebasejs/${v}/`;
     const [app, auth, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
@@ -492,7 +542,7 @@ class CloudStore {
         this.ready = true; this._notify();
       }, err => { console.error(name, err); toast('Ralat Firestore: ' + err.code); }));
     };
-    sub('tasks', 'tasks'); sub('logs', 'logs'); sub('helpdesk', 'helpdesk');
+    sub('tasks', 'tasks'); sub('logs', 'logs'); sub('helpdesk', 'helpdesk'); sub('days', 'days');
     this.unsubs.push(fs.onSnapshot(fs.doc(db, 'users', u, 'settings', 'main'), snap => { this.data.settings = snap.exists() ? snap.data() : {}; if (!snap.metadata.fromCache) this.serverReady.settings = true; this.ready = true; this._notify(); }));
   }
   _ref(col, id) { return this.fb.fs.doc(this.db, 'users', this.user.uid, col, id); }
@@ -508,23 +558,27 @@ class CloudStore {
   async saveSettings(patch) { this.data.settings = Object.assign({}, this.data.settings, patch); this.fb.fs.setDoc(this._ref('settings', 'main'), this.data.settings, { merge: true }).catch(e => toast('Gagal simpan tetapan')); this._notify(); }
   async addHelpdesk(h) { this.fb.fs.setDoc(this._ref('helpdesk', h.id), h); this.data.helpdesk.unshift(h); this._notify(); }
   async deleteHelpdesk(id) { this.fb.fs.deleteDoc(this._ref('helpdesk', id)); this.data.helpdesk = this.data.helpdesk.filter(h => h.id !== id); this._notify(); }
+  async upsertDays(list) { const { fs } = this.fb; for (const d of list) { d.updatedAt = Date.now(); d.id = d.date; fs.setDoc(this._ref('days', d.date), d).catch(e => console.warn('day', e)); const i = this.data.days.findIndex(x => x.date === d.date); if (i >= 0) this.data.days[i] = d; else this.data.days.push(d); } this._notify(); }
+  async deleteDay(date) { this.fb.fs.deleteDoc(this._ref('days', date)); this.data.days = this.data.days.filter(d => d.date !== date); this._notify(); }
   _optimistic(key, obj) { const arr = this.data[key]; const i = arr.findIndex(x => x.id === obj.id); if (i >= 0) arr[i] = obj; else arr.push(obj); this._notify(); }
   exportJSON() { return JSON.stringify(Object.assign({ exportedAt: new Date().toISOString(), app: 'MyKajian', version: APP_VERSION }, this.data), null, 2); }
-  async importJSON(obj) { for (const t of (obj.tasks || [])) await this.upsertTask(t); for (const l of (obj.logs || [])) await this.upsertLog(l); if (obj.settings) await this.saveSettings(obj.settings); }
+  async importJSON(obj) { for (const t of (obj.tasks || [])) await this.upsertTask(t); for (const l of (obj.logs || [])) await this.upsertLog(l); if (obj.days && obj.days.length) await this.upsertDays(obj.days); if (obj.settings) await this.saveSettings(obj.settings); }
 }
 
 /* ---------- keadaan global ---------- */
 const S = {
-  store: null, settings: Object.assign({}, DEFAULT_SETTINGS), tasks: [], logs: [], helpdesk: [], tasksD: [],
+  store: null, settings: Object.assign({}, DEFAULT_SETTINGS), tasks: [], logs: [], helpdesk: [], days: [], tasksD: [], jadualDate: todayISO(),
   view: 'papan', calMode: Local.get('calMode', 'bulan'), calDate: todayISO(), selDate: todayISO(),
-  filters: { v: 'ALL', s: 'ALL' }, timeline: null, pipWin: null, alarm: { active: false, snoozedUntil: 0 }, installPrompt: null
+  filters: { v: 'ALL', s: 'ALL', b: 'ALL' }, timeline: null, jadualTimeline: null, pipWin: null, alarm: { active: false, snoozedUntil: 0 }, installPrompt: null
 };
 function applyData(d) {
   S.tasks = d.tasks || []; S.logs = d.logs || []; S.helpdesk = (d.helpdesk || []).slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  S.settings = Object.assign({}, DEFAULT_SETTINGS, d.settings || {});
+  S.days = (d.days || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+  S.settings = Object.assign({}, DEFAULT_SETTINGS, d.settings || {}); if (!S.settings.workHours || typeof S.settings.workHours !== 'object') S.settings.workHours = DEFAULT_WORK_HOURS;
   S.tasksD = decorate(S.tasks, S.logs).sort(sortTasks);
   applyTheme(); renderSync(); render(); updateWidget(); Notify.weeklyPersistent();
   const st = S.store; if (st.mode === 'cloud' && st.user && st.serverReady.tasks && st.serverReady.settings && !S.settings.seeded && !S.tasks.length && !S._seeding) { S._seeding = true; seedNow(); }
+  if (typeof Scheduler !== 'undefined') Scheduler.autoEnsure();
 }
 function sortTasks(a, b) {
   const r = { merah: 0, kuning: 1, hijau: 2 }; if (r[a.status] !== r[b.status]) return r[a.status] - r[b.status];
@@ -544,15 +598,15 @@ function renderSync() {
 /* ---------- data awal (Fasa 1) ---------- */
 function seedTasks() {
   const t = todayISO();
-  const mk = (title, variable, start, due, target, description) => ({ id: uid(), title, variable, start, due, target, description, startTime: '', endTime: '', progress: 0, archived: false, createdAt: Date.now() });
+  const mk = (title, variable, start, due, target, description, bab, estHours) => ({ id: uid(), title, variable, variables: [variable], bab, estHours, start, due, target, description, startTime: '', endTime: '', progress: 0, archived: false, createdAt: Date.now() });
   return [
-    mk('Instrumen ISTE-EL (IV): hantar kepada pakar untuk terjemahan forward dan backward', 'IV', t, '2026-09-11', '2026-09-10', 'E-mel pakej instrumen ISTE Standards for Education Leaders v4.02 kepada semua pakar terjemahan. Sertakan surat iringan, borang penilaian dan tarikh pemulangan.'),
-    mk('Instrumen DigCompEdu (DV): hantar kepada pakar untuk terjemahan forward dan backward', 'DV', t, '2026-09-11', '2026-09-10', 'E-mel pakej instrumen DigCompEdu kepada semua pakar terjemahan. Sertakan surat iringan, borang penilaian dan tarikh pemulangan.'),
-    mk('Instrumen KM-S (Perantara): hantar kepada pakar untuk terjemahan forward dan backward', 'MED', t, '2026-09-11', '2026-09-10', 'E-mel pakej Knowledge Management Scale (KM-S, 25 item, empat dimensi) kepada semua pakar terjemahan. Pastikan kebenaran penggunaan skala telah diperoleh.'),
-    mk('Hantar artikel kepada ICAME 2026', 'UMUM', t, '2026-09-09', '2026-09-08', 'Semak format templat persidangan, abstrak, kata kunci, rujukan APA 7, dan muat naik melalui sistem penghantaran ICAME 2026.'),
-    mk('Kemas kini artikel PPDO untuk penghantaran ke MRJ', 'UMUM', '2026-09-10', '2026-09-30', '2026-09-25', 'Kemas kini manuskrip PPDO mengikut garis panduan pengarang MRJ: struktur, rujukan, jadual, dan surat iringan.'),
-    mk('Siapkan satu artikel untuk Jurnal IPG', 'UMUM', '2026-10-01', '2026-10-31', '2026-10-24', 'Artikel baharu untuk Jurnal IPG (Darul Aman): tentukan fokus, susun literatur daripada Jadual SLR, tulis draf penuh, semak format jurnal.'),
-    mk('Siapkan satu artikel untuk BPG', 'UMUM', '2026-11-01', '2026-11-30', '2026-11-23', 'Artikel baharu untuk BPG: tentukan fokus, susun literatur, tulis draf penuh, semak format.')
+    mk('Instrumen ISTE-EL (IV): hantar kepada pakar untuk terjemahan forward dan backward', 'IV', t, '2026-09-11', '2026-09-10', 'E-mel pakej instrumen ISTE Standards for Education Leaders v4.02 kepada semua pakar terjemahan. Sertakan surat iringan, borang penilaian dan tarikh pemulangan.', 'Bab 3', 6),
+    mk('Instrumen DigCompEdu (DV): hantar kepada pakar untuk terjemahan forward dan backward', 'DV', t, '2026-09-11', '2026-09-10', 'E-mel pakej instrumen DigCompEdu kepada semua pakar terjemahan. Sertakan surat iringan, borang penilaian dan tarikh pemulangan.', 'Bab 3', 6),
+    mk('Instrumen KM-S (Perantara): hantar kepada pakar untuk terjemahan forward dan backward', 'MED', t, '2026-09-11', '2026-09-10', 'E-mel pakej Knowledge Management Scale (KM-S, 25 item, empat dimensi) kepada semua pakar terjemahan. Pastikan kebenaran penggunaan skala telah diperoleh.', 'Bab 3', 6),
+    mk('Hantar artikel kepada ICAME 2026', 'UMUM', t, '2026-09-09', '2026-09-08', 'Semak format templat persidangan, abstrak, kata kunci, rujukan APA 7, dan muat naik melalui sistem penghantaran ICAME 2026.', 'Bab 2', 12),
+    mk('Kemas kini artikel PPDO untuk penghantaran ke MRJ', 'UMUM', '2026-09-10', '2026-09-30', '2026-09-25', 'Kemas kini manuskrip PPDO mengikut garis panduan pengarang MRJ: struktur, rujukan, jadual, dan surat iringan.', 'Bab 2', 20),
+    mk('Siapkan satu artikel untuk Jurnal IPG', 'UMUM', '2026-10-01', '2026-10-31', '2026-10-24', 'Artikel baharu untuk Jurnal IPG (Darul Aman): tentukan fokus, susun literatur daripada Jadual SLR, tulis draf penuh, semak format jurnal.', 'Bab 2', 40),
+    mk('Siapkan satu artikel untuk BPG', 'UMUM', '2026-11-01', '2026-11-30', '2026-11-23', 'Artikel baharu untuk BPG: tentukan fokus, susun literatur, tulis draf penuh, semak format.', 'Bab 2', 40)
   ];
 }
 </script>
@@ -562,7 +616,7 @@ function seedTasks() {
    ===================================================================== */
 
 /* ---------- penghala ---------- */
-const VIEWS = ['papan', 'kalendar', 'gantt', 'tugasan', 'log', 'mingguan', 'helpdesk', 'tetapan'];
+const VIEWS = ['papan', 'jadual', 'kalendar', 'gantt', 'tugasan', 'log', 'mingguan', 'helpdesk', 'tetapan'];
 function route() {
   const h = location.hash.replace(/^#\/?/, '');
   if (h === 'widget') { document.body.classList.add('widget'); renderWidgetInto($('#shell')); return; }
@@ -579,6 +633,7 @@ function render() {
   const d = new Date(); $('#topToday').textContent = `${DAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
   switch (S.view) {
     case 'papan': el.innerHTML = vDashboard(); break;
+    case 'jadual': el.innerHTML = vSchedule(); requestAnimationFrame(mountJadual); break;
     case 'kalendar': el.innerHTML = vCalendar(); break;
     case 'gantt': el.innerHTML = vGantt(); requestAnimationFrame(mountGantt); break;
     case 'tugasan': el.innerHTML = vTasks(); break;
@@ -588,6 +643,7 @@ function render() {
     case 'tetapan': el.innerHTML = vSettings(); break;
   }
   if (S.view !== 'gantt' && S.timeline) { try { S.timeline.destroy(); } catch (e) {} S.timeline = null; }
+  if (S.view !== 'jadual' && S.jadualTimeline) { try { S.jadualTimeline.destroy(); } catch (e) {} S.jadualTimeline = null; }
 }
 
 function renderBanners() {
@@ -601,6 +657,8 @@ function renderBanners() {
 
 /* ---------- komponen kecil ---------- */
 function chipV(v) { const x = VARS[v] || VARS.UMUM; return `<span class="chip ${x.code}" title="${esc(x.name)}">${x.short}</span>`; }
+function chipsV(t) { return (t.vars || taskVars(t)).map(chipV).join(' '); }
+function chipB(t) { const b = t.bab || taskBab(t); return b ? `<span class="chip bab">${esc(b)}</span>` : '<span class="chip bab none">Bab?</span>'; }
 function chipS(s, pct) { return `<span class="chip ${s}">${STATUS_LABEL[s]}${s === 'kuning' && pct != null ? ' · ' + pct + '%' : ''}</span>`; }
 function daysChip(n) { if (n == null) return ''; const c = n < 0 ? 'late' : n <= 3 ? 'soon' : ''; return `<span class="days ${c}">${daysLabel(n)}</span>`; }
 function taskCard(t, opts = {}) {
@@ -608,7 +666,7 @@ function taskCard(t, opts = {}) {
   return `<div class="task ${t.status === 'hijau' ? 'done' : ''}" onclick="openTaskForm('${t.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openTaskForm('${t.id}')">
     <div class="stripe ${t.variable}"></div>
     <div><div class="title">${esc(t.title)}</div>
-      <div class="meta">${chipV(t.variable)} ${t.due ? `<span>📅 dateline ${fmtDateShort(t.due)}</span>` : ''} ${tgt} ${t.lastLog ? `<span>✎ log ${fmtDateShort(t.lastLog.date)}</span>` : '<span>✎ tiada log</span>'}</div>
+      <div class="meta">${chipB(t)} ${chipsV(t)} ${t.due ? `<span>📅 dateline ${fmtDateShort(t.due)}</span>` : ''} ${tgt} ${t.lastLog ? `<span>✎ log ${fmtDateShort(t.lastLog.date)}</span>` : '<span>✎ tiada log</span>'}</div>
       ${opts.desc && t.description ? `<div class="small muted" style="margin-top:6px">${esc(t.description)}</div>` : ''}
       <div class="bar ${t.status}" style="margin-top:8px"><i style="width:${t.pct}%"></i></div>
     </div>
@@ -632,6 +690,7 @@ function vDashboard() {
   return `
   <div class="pagehead"><div><h1>${greeting()}, ${esc(S.settings.userTitle)}</h1><div class="sub">${fmtDate(today, true)} · ${active.length} tugasan aktif · ${logsToday.length ? 'log hari ini sudah diisi' : 'log hari ini belum diisi'}</div></div>
     <div class="btnrow"><button class="btn" onclick="Speech.dailyBrief(true)">🔊 Dengar tugasan hari ini</button><button class="btn primary" onclick="openLogForm()">✎ Isi log hari ini</button></div></div>
+  ${blockNowCard()}
   <div class="grid two">
     <div class="card"><h3>Hari ini</h3>
       ${overdue.length ? `<div class="banner warn" style="margin-bottom:10px">⚠️ <span class="grow">${overdue.length} tugasan sudah melepasi dateline.</span></div>` : ''}
@@ -743,18 +802,21 @@ function ganttWindow(mode) {
 
 /* ---------- Tugasan ---------- */
 function vTasks() {
-  const f = S.filters; let T = S.tasksD;
-  if (f.v !== 'ALL') T = T.filter(t => t.variable === f.v); if (f.s !== 'ALL') T = T.filter(t => t.status === f.s);
+  const f = S.filters; let T = S.tasksD.filter(t => t.status !== 'hijau');
+  if (f.v !== 'ALL') T = T.filter(t => t.vars.includes(f.v)); if (f.s !== 'ALL') T = T.filter(t => t.status === f.s); if (f.b !== 'ALL') T = T.filter(t => (t.bab || taskBab(t)) === f.b);
   const groups = VAR_ORDER.map(v => { const ts = T.filter(t => t.variable === v); if (!ts.length) return ''; return `<h3 style="margin:16px 0 8px"><span class="dot ${v}"></span> ${VARS[v].short} · ${VARS[v].name} <span class="muted small">(${ts.length})</span></h3><div class="tasklist">${ts.map(t => taskCard(t, { desc: true })).join('')}</div>`; }).join('');
+  const done = S.tasksD.filter(t => t.status === 'hijau').sort((a, b) => (b.doneDate || '').localeCompare(a.doneDate || ''));
+  const archive = `<div class="card" style="margin-top:22px"><h3>🏆 Arkib tugasan selesai <span class="chip hijau">${done.length}</span></h3>${done.length ? `<p class="small muted">${reflectionLine(done)}</p><div class="tasklist">${done.map(t => taskCard(t)).join('')}</div>` : '<p class="muted">Belum ada tugasan selesai. Tugasan yang mencapai 100 peratus akan disimpan di sini secara automatik.</p>'}</div>`;
   return `<div class="pagehead"><div><h1>Tugasan</h1><div class="sub">${S.tasksD.length} tugasan mengikut pembolehubah kajian.</div></div><div class="btnrow"><button class="btn" onclick="exportCSV()">⇩ CSV</button><button class="btn primary" onclick="openTaskForm()">+ Tugasan baharu</button></div></div>
   <div class="btnrow" style="margin-bottom:6px"><div class="seg"><button class="${f.v === 'ALL' ? 'active' : ''}" onclick="setFilter('v','ALL')">Semua</button>${VAR_ORDER.map(v => `<button class="${f.v === v ? 'active' : ''}" onclick="setFilter('v','${v}')">${VARS[v].short}</button>`).join('')}</div>
-  <div class="seg"><button class="${f.s === 'ALL' ? 'active' : ''}" onclick="setFilter('s','ALL')">Semua status</button><button class="${f.s === 'merah' ? 'active' : ''}" onclick="setFilter('s','merah')">Merah</button><button class="${f.s === 'kuning' ? 'active' : ''}" onclick="setFilter('s','kuning')">Kuning</button><button class="${f.s === 'hijau' ? 'active' : ''}" onclick="setFilter('s','hijau')">Hijau</button></div></div>
-  ${groups || '<p class="muted">Tiada tugasan sepadan dengan penapis.</p>'}`;
+  <div class="seg"><button class="${f.s === 'ALL' ? 'active' : ''}" onclick="setFilter('s','ALL')">Semua status</button><button class="${f.s === 'merah' ? 'active' : ''}" onclick="setFilter('s','merah')">Merah</button><button class="${f.s === 'kuning' ? 'active' : ''}" onclick="setFilter('s','kuning')">Kuning</button></div>
+  <div class="seg"><button class="${f.b === 'ALL' ? 'active' : ''}" onclick="setFilter('b','ALL')">Semua bab</button>${BABS.map(b => `<button class="${f.b === b ? 'active' : ''}" onclick="setFilter('b','${b}')">${b.replace('Bab ', 'B')}</button>`).join('')}</div></div>
+  ${groups || '<p class="muted">Tiada tugasan aktif sepadan dengan penapis.</p>'}${archive}`;
 }
 function setFilter(k, v) { S.filters[k] = v; render(); }
 function exportCSV() {
-  const rows = [['Tajuk', 'Pembolehubah', 'Mula', 'Dateline', 'Target', 'Status', 'Peratus', 'Log terakhir', 'Huraian']];
-  S.tasksD.forEach(t => rows.push([t.title, VARS[t.variable].short, t.start, t.due, t.target, STATUS_LABEL[t.status], t.pct, t.lastLog ? t.lastLog.date : '', t.description]));
+  const rows = [['Tajuk', 'Bab', 'Pembolehubah', 'Anggaran jam', 'Mula', 'Dateline', 'Target', 'Status', 'Peratus', 'Log terakhir', 'Huraian']];
+  S.tasksD.forEach(t => rows.push([t.title, t.bab, t.vars.map(v => VARS[v].short).join(' + '), t.est, t.start, t.due, t.target, STATUS_LABEL[t.status], t.pct, t.lastLog ? t.lastLog.date : '', t.description]));
   const csv = rows.map(r => r.map(c => '"' + String(c ?? '').replace(/"/g, '""') + '"').join(',')).join('\n');
   download('mykajian-tugasan-' + todayISO() + '.csv', '﻿' + csv, 'text/csv');
 }
@@ -834,6 +896,89 @@ function mdToHtml(md) {
 }
 function stripMd(s) { return String(s || '').replace(/[#*`|>-]/g, ' ').replace(/\s+/g, ' ').trim(); }
 
+/* ---------- Jadual jam (v2.0) ---------- */
+function hmToMin(hm) { const [h, m] = String(hm || '00:00').split(':').map(Number); return h * 60 + m; }
+function minToHM(min) { min = ((min % 1440) + 1440) % 1440; return pad(Math.floor(min / 60)) + ':' + pad(min % 60); }
+function fmtHM12(hm) { const m = hmToMin(hm); const h = Math.floor(m / 60), mm = m % 60; const suf = h < 12 ? 'pagi' : h < 15 ? 'tengah hari' : h < 19 ? 'petang' : 'malam'; const h12 = h % 12 === 0 ? 12 : h % 12; return `${h12}${mm ? ':' + pad(mm) : ''} ${suf}`; }
+function dayDoc(date) { return S.days.find(d => d.date === date) || null; }
+function blocksOf(date) { const d = dayDoc(date); return d ? d.blocks.slice().sort((a, b) => a.start.localeCompare(b.start)) : []; }
+function taskOf(id) { return S.tasksD.find(t => t.id === id) || S.tasks.find(t => t.id === id) || null; }
+function currentBlock(date, hm) { return blocksOf(date).find(b => b.start <= hm && hm < b.end) || null; }
+function nextBlock(date, hm) { const today = todayISO(); let b = blocksOf(date).find(x => x.start > hm); let d = date; let n = 0; while (!b && n < 14) { d = addDays(d, 1); n++; b = blocksOf(d)[0]; } return b ? { block: b, date: d } : null; }
+function blockLabel(b) { if (!b.taskId) return 'Bebas: semakan, bacaan atau susulan e-mel'; const t = taskOf(b.taskId); return t ? t.title : '(tugasan dipadam)'; }
+function reflectionLine(done) {
+  const early = done.filter(t => t.doneDate && t.due && t.doneDate <= t.due).length;
+  return `${done.length} tugasan telah diselesaikan, ${early} daripadanya sebelum atau tepat pada dateline. Setiap satu adalah bukti Prof Dr mampu menyiapkan baki tugasan dengan disiplin yang sama.`;
+}
+function blockNowCard() {
+  const today = todayISO(), hm = nowHM(); const cur = currentBlock(today, hm), nxt = nextBlock(today, hm);
+  const inWork = Scheduler.rangesFor(today).some(([a, b]) => a <= hm && hm < b);
+  const stale = Scheduler.isStale();
+  const line = cur ? `<div class="nowblock"><div class="small muted">SEKARANG · ${cur.start} hingga ${cur.end}${cur.manual ? ' · 📌 manual' : ''}</div><div class="t">${esc(blockLabel(cur))}</div>${cur.taskId && taskOf(cur.taskId) ? `<div class="small muted">${chipB(taskOf(cur.taskId))} ${chipsV(taskOf(cur.taskId))} · dateline ${fmtDateShort(taskOf(cur.taskId).due)} (${daysLabel(taskOf(cur.taskId).daysToDue)})</div>` : ''}</div>` : `<div class="nowblock"><div class="small muted">${inWork ? 'SEKARANG · slot kerja tanpa blok' : 'SEKARANG · di luar waktu kerja'}</div><div class="t muted">${inWork ? 'Jana jadual untuk mengisi slot ini.' : 'Rehat. Blok seterusnya di bawah.'}</div></div>`;
+  const nx = nxt ? `<div class="small" style="margin-top:8px">Seterusnya: <b>${nxt.date === today ? '' : fmtDateShort(nxt.date) + ' '}${nxt.block.start}</b> · ${esc(blockLabel(nxt.block))}</div>` : '';
+  return `<div class="card now ${cur ? 'active' : ''}" style="margin-bottom:14px"><div class="pagehead" style="margin-bottom:6px"><h3>⏱ Blok kerja</h3><div class="btnrow"><a class="btn sm" href="#/jadual">Jadual penuh</a>${stale ? '<button class="btn sm primary" onclick="Scheduler.regenerate()">Jana semula jadual</button>' : ''}</div></div>${line}${nx}</div>`;
+}
+function vSchedule() {
+  const date = S.jadualDate, today = todayISO(), blocks = blocksOf(date), hm = nowHM();
+  const ranges = Scheduler.rangesFor(date); const cap = ranges.reduce((a, [x, y]) => a + hmToMin(y) - hmToMin(x), 0);
+  const shortfalls = Scheduler.shortfalls();
+  const ws = weekStart(date);
+  const strip = Array.from({ length: 7 }, (_, i) => { const d = addDays(ws, i), dd = fromISO(d), n = blocksOf(d).filter(b => b.taskId).length; return `<button class="dayb ${d === date ? 'sel' : ''} ${d === today ? 'today' : ''}" onclick="S.jadualDate='${d}';render()">${DAYS_S[dd.getDay()]}<b>${dd.getDate()}</b><span class="small muted">${n} blok</span></button>`; }).join('');
+  const list = blocks.length ? blocks.map((b, i) => { const t = b.taskId ? taskOf(b.taskId) : null; const live = date === today && b.start <= hm && hm < b.end; const past = date < today || (date === today && b.end <= hm);
+    const brk = i < blocks.length - 1 && hmToMin(blocks[i + 1].start) - hmToMin(b.end) >= 3 && hmToMin(blocks[i + 1].start) - hmToMin(b.end) <= 15 ? `<div class="brk">☕ Rehat ${hmToMin(blocks[i + 1].start) - hmToMin(b.end)} minit</div>` : '';
+    return `<div class="blk ${t ? t.variable : 'free'} ${live ? 'live' : ''} ${past ? 'past' : ''} ${b.done ? 'done' : ''}"><div class="tm mono">${b.start}<br><span class="muted">${b.end}</span></div><div class="bd"><div class="t">${esc(blockLabel(b))}</div><div class="small muted">${t ? `${chipB(t)} ${chipsV(t)} · ${t.pct}% · dateline ${fmtDateShort(t.due)} (${daysLabel(t.daysToDue)})` : 'Blok bebas'}${b.manual ? ' · 📌 manual' : ''}${b.note ? ' · ' + esc(b.note) : ''}</div></div><div class="ac"><button class="btn sm ${b.done ? 'primary' : ''}" title="Tanda siap" onclick="toggleBlockDone('${date}','${b.id}')">${b.done ? '✓' : '○'}</button><button class="btn sm ghost" title="Sunting" onclick="openBlockForm('${date}','${b.id}')">✎</button></div></div>${brk}`; }).join('')
+    : `<p class="muted">${ranges.length ? 'Tiada blok pada hari ini. Tekan "Jana semula jadual".' : 'Tiada waktu kerja ditetapkan untuk hari ini.'}</p>`;
+  return `<div class="pagehead"><div><h1>Jadual jam</h1><div class="sub">${fmtDate(date, true)} · waktu kerja ${ranges.map(([a, b]) => a + ' hingga ' + b).join(', ') || 'tiada'} · ${cap} minit · Pomodoro ${S.settings.pomodoroWork}/${S.settings.pomodoroBreak}. Semua blok Floating: seret dalam carta atau tekan ✎.</div></div>
+    <div class="btnrow"><button class="btn" onclick="S.jadualDate=addDays(S.jadualDate,-1);render()">‹</button><button class="btn" onclick="S.jadualDate=todayISO();render()">Hari ini</button><button class="btn" onclick="S.jadualDate=addDays(S.jadualDate,1);render()">›</button><button class="btn" onclick="openBlockForm('${date}')">+ Blok</button><button class="btn primary" onclick="Scheduler.regenerate()">⟳ Jana semula jadual</button></div></div>
+  ${shortfalls.length ? `<div class="banner warn">⚠️ <span class="grow"><b>Amaran pembantu peribadi:</b> ${shortfalls.map(x => `${esc(x.title)} kekurangan kira-kira ${x.hours} jam sebelum dateline ${fmtDateShort(x.due)}`).join('; ')}. Tambah slot kerja, kurangkan skop, atau minta lanjutan sekarang, bukan minggu depan.</span></div>` : ''}
+  <div class="daystrip">${strip}</div>
+  <div class="grid two" style="grid-template-columns: minmax(300px, 1fr) minmax(300px, 1.2fr)">
+    <div class="card"><h3>Blok hari ini</h3><div class="blklist">${list}</div></div>
+    <div class="card"><div class="pagehead" style="margin-bottom:8px"><h3>Carta jam (seret untuk ubah masa)</h3><div class="seg">${ranges.map((r, i) => `<button onclick="jadualWindow(${i})">${r[0]}</button>`).join('')}<button onclick="jadualWindow(-1)">Seharian</button></div></div><div id="jadualGantt"></div><p class="hint" style="margin-top:8px">Seret bar ke masa lain atau ke baris tugasan lain; blok yang diseret ditanda 📌 manual dan dikekalkan apabila jadual dijana semula.</p></div>
+  </div>`;
+}
+function mountJadual() {
+  const el = $('#jadualGantt'); if (!el || typeof vis === 'undefined') return;
+  const date = S.jadualDate, blocks = blocksOf(date), ranges = Scheduler.rangesFor(date);
+  const active = S.tasksD.filter(t => t.status !== 'hijau');
+  const groups = [...active.map(t => ({ id: t.id, content: `<span class="dot ${t.variable}"></span> ${esc(t.title.slice(0, 38))}${t.title.length > 38 ? '…' : ''}` })), { id: '_free', content: 'Bebas' }];
+  const items = blocks.map(b => ({ id: b.id, group: b.taskId && active.some(t => t.id === b.taskId) ? b.taskId : '_free', content: `${b.start} ${b.manual ? '📌' : ''}`, start: date + 'T' + b.start, end: date + 'T' + b.end, className: `v-${b.taskId && taskOf(b.taskId) ? taskOf(b.taskId).variable : 'UMUM'} ${b.done ? 's-hijau' : ''}`, title: esc(blockLabel(b)) }));
+  ranges.forEach(([a, b], i) => items.push({ id: 'range' + i, type: 'background', start: date + 'T' + a, end: date + 'T' + b, className: 'workrange' }));
+  const first = ranges.length ? hmToMin(ranges[0][0]) - 30 : 8 * 60, last = ranges.length ? hmToMin(ranges[ranges.length - 1][1]) + 30 : 23 * 60;
+  const opts = { orientation: 'top', stack: false, zoomMin: 30 * 60 * 1000, zoomMax: 24 * 3600 * 1000, showCurrentTime: true, margin: { item: 4, axis: 8 }, locale: 'en', xss: { disabled: true }, editable: { updateTime: true, updateGroup: true, add: false, remove: false }, snap: (d) => { const ms = 5 * 60 * 1000; return new Date(Math.round(d.getTime() / ms) * ms); }, format: { minorLabels: { minute: 'HH:mm', hour: 'HH:mm' }, majorLabels: { hour: 'ddd D MMM' } }, minHeight: '320px', maxHeight: '60vh', verticalScroll: true,
+    onMove: (item, cb) => { const b = blocksOf(date).find(x => x.id === item.id); if (!b) return cb(null); const st = new Date(item.start), en = new Date(item.end); const nb = Object.assign({}, b, { start: fmtTime(st), end: fmtTime(en), taskId: item.group === '_free' ? null : item.group, manual: true }); if (hmToMin(nb.end) <= hmToMin(nb.start)) return cb(null); Scheduler.saveBlock(date, nb); cb(item); } };
+  if (S.jadualTimeline) { try { S.jadualTimeline.destroy(); } catch (e) {} }
+  S.jadualTimeline = new vis.Timeline(el, new vis.DataSet(items), new vis.DataSet(groups), opts);
+  S.jadualTimeline.setWindow(fromISO(date).getTime() + first * 60000, fromISO(date).getTime() + last * 60000, { animation: false });
+  const hmNow = nowHM(); const idx = ranges.findIndex(([a, b]) => hmNow < b); jadualWindow(date === todayISO() && idx >= 0 ? idx : (ranges.length ? 0 : -1));
+  S.jadualTimeline.on('doubleClick', p => { if (p.item && !String(p.item).startsWith('range')) openBlockForm(date, p.item); });
+}
+function jadualWindow(i) {
+  if (!S.jadualTimeline) return; const date = S.jadualDate, ranges = Scheduler.rangesFor(date), base = fromISO(date).getTime();
+  if (i < 0 || !ranges[i]) { const first = ranges.length ? hmToMin(ranges[0][0]) - 30 : 8 * 60, last = ranges.length ? hmToMin(ranges[ranges.length - 1][1]) + 30 : 23 * 60; S.jadualTimeline.setWindow(base + first * 60000, base + last * 60000, { animation: true }); return; }
+  const a = hmToMin(ranges[i][0]) - 15, b = Math.max(hmToMin(ranges[i][1]) + 15, hmToMin(ranges[i][0]) + 120); S.jadualTimeline.setWindow(base + a * 60000, base + b * 60000, { animation: true });
+}
+function openBlockForm(date, id) {
+  const b = id ? blocksOf(date).find(x => x.id === id) : null; const active = S.tasksD.filter(t => t.status !== 'hijau');
+  modal(`<header><h2>${b ? 'Sunting blok' : 'Blok baharu'}</h2><button class="btn sm ghost" onclick="closeModal()">✕</button></header>
+  <form class="form" onsubmit="saveBlockForm(event,'${date}','${b ? b.id : ''}')">
+    <div class="row3"><div class="field"><label>Tarikh</label><input type="date" name="date" value="${date}" required></div><div class="field"><label>Mula</label><input type="time" name="start" value="${b ? b.start : '09:00'}" required></div><div class="field"><label>Tamat</label><input type="time" name="end" value="${b ? b.end : '09:30'}" required></div></div>
+    <div class="field"><label>Tugasan</label><select name="taskId"><option value="">Bebas (semakan, bacaan, e-mel)</option>${active.map(t => `<option value="${t.id}" ${b && b.taskId === t.id ? 'selected' : ''}>${t.bab} · ${esc(t.title)}</option>`).join('')}</select></div>
+    <div class="field"><label>Nota (pilihan)</label><input name="note" value="${esc(b ? b.note || '' : '')}" placeholder="Contoh: fokus pada bahagian metodologi"></div>
+    <p class="hint">Blok yang disunting ditanda 📌 manual dan tidak diubah oleh penjadual automatik.</p>
+    <footer>${b ? `<button type="button" class="btn danger" onclick="Scheduler.deleteBlock('${date}','${b.id}');closeModal()">Padam blok</button>` : '<span></span>'}<div class="r"><button type="button" class="btn" onclick="closeModal()">Batal</button><button class="btn primary">Simpan</button></div></footer>
+  </form>`);
+}
+async function saveBlockForm(e, date, id) {
+  e.preventDefault(); const o = Object.fromEntries(new FormData(e.target).entries());
+  if (hmToMin(o.end) <= hmToMin(o.start)) { alert('Masa tamat mesti selepas masa mula.'); return; }
+  const old = id ? blocksOf(date).find(x => x.id === id) : null;
+  if (old && o.date !== date) await Scheduler.deleteBlock(date, id);
+  const nb = Object.assign({}, old || { id: uid(), done: false }, { start: o.start, end: o.end, taskId: o.taskId || null, note: (o.note || '').trim(), manual: true });
+  await Scheduler.saveBlock(o.date, nb); S.jadualDate = o.date; closeModal(); toast('Blok disimpan (manual)');
+}
+async function toggleBlockDone(date, id) { const b = blocksOf(date).find(x => x.id === id); if (!b) return; await Scheduler.saveBlock(date, Object.assign({}, b, { done: !b.done })); }
+
 /* ---------- Tetapan ---------- */
 function vSettings() {
   const s = S.settings, cloud = S.store.mode === 'cloud';
@@ -859,6 +1004,18 @@ function vSettings() {
     <div class="field" style="margin-top:8px"><label>Kelajuan (${s.voiceRate})</label><input type="range" min="0.7" max="1.3" step="0.1" value="${s.voiceRate}" onchange="saveSetting('voiceRate',Number(this.value))"></div>
     <div class="btnrow" style="margin-top:8px"><button class="btn sm" onclick="Speech.say('Selamat sejahtera ${esc(s.userTitle)}. Ini suara MyKajian.')">Uji suara</button></div>
     <div class="field" style="margin-top:10px"><label>Gelaran sapaan</label><input value="${esc(s.userTitle)}" onchange="saveSetting('userTitle',this.value)"></div>
+  </section>
+  <section><h3>Waktu kerja dan jadual jam</h3>
+    <div class="hint" style="margin-bottom:8px">Hingga tiga slot sehari (format 24 jam). Kosongkan slot yang tidak digunakan. Penjadual mengisi slot dengan blok Pomodoro.</div>
+    <div class="whgrid">${[1, 2, 3, 4, 5, 6, 0].map(d => { const r = (s.workHours && s.workHours[d]) || []; return `<div class="whrow"><b>${DAYS[d]}</b>${[0, 1, 2].map(i => `<span class="whslot"><input type="time" value="${r[i] ? r[i][0] : ''}" onchange="saveWorkHour(${d},${i},0,this.value)"><span>hingga</span><input type="time" value="${r[i] ? r[i][1] : ''}" onchange="saveWorkHour(${d},${i},1,this.value)"></span>`).join('')}</div>`; }).join('')}</div>
+    <div class="row3" style="margin-top:10px"><div class="field"><label>Kerja (minit)</label><input type="number" min="15" max="90" step="5" value="${s.pomodoroWork}" onchange="saveSetting('pomodoroWork',Number(this.value)||30)"></div><div class="field"><label>Rehat (minit)</label><input type="number" min="0" max="30" step="1" value="${s.pomodoroBreak}" onchange="saveSetting('pomodoroBreak',Number(this.value)||5)"></div><div class="field"><label>Ufuk jadual (hari)</label><input type="number" min="7" max="120" step="1" value="${s.horizonDays}" onchange="saveSetting('horizonDays',Number(this.value)||60)"></div></div>
+    ${sw('autoSchedule', 'Jana jadual automatik', 'Jadual dijana semula apabila tugasan atau log berubah; blok manual dikekalkan.')}
+    <div class="btnrow" style="margin-top:8px"><button class="btn sm primary" onclick="Scheduler.regenerate()">⟳ Jana semula jadual sekarang</button></div>
+  </section>
+  <section><h3>Alarm tegas dan Pomodoro</h3>
+    ${sw('sternAlarm', 'Alarm tegas setiap jam', 'Buzzer keras dan suara tegas pada permulaan setiap slot kerja dan setiap 60 minit selepasnya, menyebut blok yang sepatutnya dibuat.')}
+    ${sw('breakChime', 'Bunyi rehat Pomodoro', 'Bunyi lembut pada mula dan tamat rehat 5 minit.')}
+    <div class="btnrow" style="margin-top:8px"><button class="btn sm" onclick="Reminder.sternNow(true)">Uji alarm tegas</button><button class="btn sm" onclick="Bell.chime()">Uji bunyi rehat</button></div>
   </section></div>
   <div class="card"><section><h3>Helpdesk AI (Gemini)</h3>
     <div class="field"><label>Kunci Gemini API (percuma dari Google AI Studio)</label><input type="password" id="gk" value="${esc(s.geminiKey)}" placeholder="AIza…" onchange="saveSetting('geminiKey',this.value.trim())"><div class="hint">Kunci disimpan dalam tetapan (disegerakkan ke peranti Prof Dr apabila awan disambungkan), bukan dalam kod awam.</div></div>
@@ -883,6 +1040,11 @@ function vSettings() {
     <p class="hint" style="margin-top:8px">MyKajian v${APP_VERSION} · ${cloud ? 'awan' : 'tempatan'} · ${'serviceWorker' in navigator ? 'luar talian disokong' : 'pelayar tidak menyokong luar talian'}</p>
   </section></div></div>`;
 }
+async function saveWorkHour(day, idx, which, val) {
+  const wh = JSON.parse(JSON.stringify(S.settings.workHours || DEFAULT_WORK_HOURS)); const r = wh[day] || []; while (r.length <= idx) r.push(['', '']); r[idx][which] = val;
+  wh[day] = r.filter(x => x[0] && x[1] && hmToMin(x[1]) > hmToMin(x[0])).sort((a, b) => a[0].localeCompare(b[0]));
+  await S.store.saveSettings({ workHours: wh }); Scheduler.markStale(); toast('Waktu kerja disimpan; jana semula jadual untuk menerapkannya');
+}
 async function saveSetting(k, v) { await S.store.saveSettings({ [k]: v }); if (S.store.mode === 'local') { /* applyData dipanggil melalui listener */ } toast('Tetapan disimpan'); }
 async function importFile(inp) { const f = inp.files[0]; if (!f) return; try { const obj = JSON.parse(await f.text()); if (!obj.tasks) throw new Error('bukan fail MyKajian'); if (confirm(`Import ${obj.tasks.length} tugasan dan ${(obj.logs || []).length} log? Data dengan ID sama akan ditulis ganti.`)) { await S.store.importJSON(obj); toast('Data diimport'); } } catch (e) { alert('Fail tidak sah: ' + e.message); } }
 async function seedNow() { for (const t of seedTasks()) if (!S.tasks.some(x => x.title === t.title)) await S.store.upsertTask(t); await S.store.saveSettings({ seeded: true }); toast('Tugasan awal dimuatkan'); }
@@ -894,12 +1056,14 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal()
 
 function openTaskForm(id, presetDate) {
   const t = id ? S.tasks.find(x => x.id === id) : null; const today = presetDate || todayISO();
-  const v = t ? t.variable : 'UMUM';
+  const vs = t ? taskVars(t) : ['UMUM']; const bab = t ? (taskBab(t) || guessBab(t)) : 'Bab 2'; const est = t ? estimateHours(t) : '';
   modal(`<header><h2>${t ? 'Sunting tugasan' : 'Tugasan baharu'}</h2><button class="btn sm ghost" onclick="closeModal()">✕</button></header>
   <form class="form" onsubmit="saveTask(event,'${t ? t.id : ''}')">
-    <div class="field"><label>Tajuk tugasan (Long Text)</label><textarea name="title" required style="min-height:56px">${esc(t ? t.title : '')}</textarea></div>
+    <div class="field"><label>Tajuk tugasan (Long Text)</label><textarea name="title" required style="min-height:56px" oninput="const e=document.getElementById('estH'); if(e && !e.dataset.touched) e.placeholder='auto: '+estimateHours({title:this.value})+' jam'">${esc(t ? t.title : '')}</textarea></div>
     <div class="field"><label>Huraian (Long Text)</label><textarea name="description" placeholder="Skop, output dijangka, pihak terlibat, pautan">${esc(t ? t.description : '')}</textarea></div>
-    <div class="field"><label>Pembolehubah kajian</label><div class="varpick">${VAR_ORDER.map(k => `<label><input type="radio" name="variable" value="${k}" ${v === k ? 'checked' : ''}><span class="dot ${k}"></span><span><b>${VARS[k].short}</b><br><span class="small muted">${VARS[k].name}</span></span></label>`).join('')}</div></div>
+    <div class="row2"><div class="field"><label>Bab (pilihan tunggal, wajib)</label><select name="bab" required>${BABS.map(b => `<option value="${b}" ${bab === b ? 'selected' : ''}>${b}</option>`).join('')}</select></div>
+    <div class="field"><label>Anggaran jam kerja</label><input type="number" id="estH" name="estHours" min="0.5" step="0.5" value="${t && Number(t.estHours) > 0 ? t.estHours : ''}" placeholder="auto: ${t ? est : 12} jam" oninput="this.dataset.touched=1"><div class="hint">Kosongkan untuk anggaran automatik; digunakan oleh penjadual jam.</div></div></div>
+    <div class="field"><label>Pembolehubah kajian (boleh pilih lebih daripada satu)</label><div class="varpick">${VAR_ORDER.map(k => `<label><input type="checkbox" name="variables" value="${k}" ${vs.includes(k) ? 'checked' : ''}><span class="dot ${k}"></span><span><b>${VARS[k].short}</b><br><span class="small muted">${VARS[k].name}</span></span></label>`).join('')}</div></div>
     <div class="row3"><div class="field"><label>Tarikh mula (Date)</label><input type="date" name="start" value="${t ? t.start : today}" required></div><div class="field"><label>Dateline (Date)</label><input type="date" name="due" value="${t ? t.due : ''}" required></div><div class="field"><label>Target siap (Date)</label><input type="date" name="target" value="${t ? t.target : ''}"></div></div>
     <div class="row2"><div class="field"><label>Jam mula (pilihan)</label><input type="time" name="startTime" value="${t ? t.startTime || '' : ''}"></div><div class="field"><label>Jam tamat (pilihan)</label><input type="time" name="endTime" value="${t ? t.endTime || '' : ''}"></div></div>
     <p class="hint">Status Hijau, Kuning atau Merah dikira automatik daripada log progress harian.</p>
@@ -907,11 +1071,13 @@ function openTaskForm(id, presetDate) {
   </form>`);
 }
 async function saveTask(e, id) {
-  e.preventDefault(); const f = new FormData(e.target), o = Object.fromEntries(f.entries());
+  e.preventDefault(); const f = new FormData(e.target), o = Object.fromEntries(f.entries()); const variables = f.getAll('variables');
   if (o.due < o.start) { alert('Dateline tidak boleh lebih awal daripada tarikh mula.'); return; }
+  if (!variables.length) { alert('Pilih sekurang-kurangnya satu pembolehubah kajian.'); return; }
+  if (!BABS.includes(o.bab)) { alert('Pilih Bab untuk tugasan ini.'); return; }
   const old = id ? S.tasks.find(x => x.id === id) : null;
-  const t = Object.assign({}, old || { id: uid(), progress: 0, archived: false }, { title: o.title.trim(), description: o.description.trim(), variable: o.variable, start: o.start, due: o.due, target: o.target || '', startTime: o.startTime || '', endTime: o.endTime || '' });
-  await S.store.upsertTask(t); closeModal(); toast(old ? 'Tugasan dikemas kini' : 'Tugasan ditambah');
+  const t = Object.assign({}, old || { id: uid(), progress: 0, archived: false }, { title: o.title.trim(), description: o.description.trim(), variable: variables[0], variables, bab: o.bab, estHours: Number(o.estHours) > 0 ? Number(o.estHours) : 0, start: o.start, due: o.due, target: o.target || '', startTime: o.startTime || '', endTime: o.endTime || '' });
+  await S.store.upsertTask(t); closeModal(); toast(old ? 'Tugasan dikemas kini' : 'Tugasan ditambah'); Scheduler.markStale();
 }
 
 /* ---------- Borang log ---------- */
@@ -924,7 +1090,7 @@ function openLogForm(taskId, date, logId) {
   modal(`<header><h2>${l ? 'Sunting log' : 'Log progress harian'}</h2><button class="btn sm ghost" onclick="closeModal()">✕</button></header>
   <form class="form" onsubmit="saveLog(event,'${l ? l.id : ''}')">
     <div class="row2"><div class="field"><label>Tarikh (Date)</label><input type="date" name="date" value="${l ? l.date : (date || todayISO())}" required></div>
-    <div class="field"><label>Tugasan</label><select name="taskId" onchange="const t=S.tasksD.find(x=>x.id===this.value);if(t){document.getElementById('lp').value=t.pct;document.getElementById('lpv').textContent=t.pct+'%'}">${S.tasksD.map(t => `<option value="${t.id}" ${t.id === sel ? 'selected' : ''}>${VARS[t.variable].short} · ${esc(t.title)}</option>`).join('')}</select></div></div>
+    <div class="field"><label>Tugasan</label><select name="taskId" onchange="const t=S.tasksD.find(x=>x.id===this.value);if(t){document.getElementById('lp').value=t.pct;document.getElementById('lpv').textContent=t.pct+'%'}">${S.tasksD.map(t => `<option value="${t.id}" ${t.id === sel ? 'selected' : ''}>${t.bab || ''} · ${t.vars.map(v => VARS[v].short).join('+')} · ${esc(t.title)}</option>`).join('')}</select></div></div>
     <div class="field"><label>Apa yang disiapkan hari ini (Long Text)</label><textarea name="done" required placeholder="Contoh: Siapkan surat iringan dan borang penilaian; e-mel kepada dua pakar pertama.">${esc(l ? l.done : '')}</textarea></div>
     <div class="field"><label>Halangan (Long Text, pilihan)</label><textarea name="blockers" style="min-height:56px" placeholder="Apa yang menghalang kemajuan?">${esc(l ? l.blockers || '' : '')}</textarea></div>
     <div class="field"><label>Peratus siap keseluruhan tugasan</label><div class="range"><input type="range" id="lp" name="percent" min="0" max="100" step="5" value="${pct}" oninput="document.getElementById('lpv').textContent=this.value+'%'"><div class="pctbox" id="lpv">${pct}%</div></div><div class="hint">100% menukar status kepada Hijau. Nyatakan target siap dalam borang tugasan.</div></div>
@@ -938,7 +1104,7 @@ async function saveLog(e, id) {
   const l = Object.assign({}, old || { id: uid() }, { date: o.date, taskId: o.taskId, done: o.done.trim(), blockers: (o.blockers || '').trim(), percent: clamp(Number(o.percent) || 0, 0, 100), plan: (o.plan || '').trim() });
   await S.store.upsertLog(l);
   const t = S.tasks.find(x => x.id === l.taskId); if (t) { t.progress = l.percent; await S.store.upsertTask(t); }
-  closeModal(); toast(l.percent >= 100 ? 'Tahniah, tugasan selesai (Hijau)' : 'Log disimpan'); Reminder.check();
+  closeModal(); toast(l.percent >= 100 ? 'Tahniah, tugasan selesai (Hijau). Disimpan dalam Arkib.' : 'Log disimpan'); Reminder.check(); Scheduler.markStale();
 }
 
 /* ---------- Log masuk awan ---------- */
@@ -979,7 +1145,7 @@ const Speech = {
     if (!window.speechSynthesis) { toast('Pelayar ini tidak menyokong suara.'); return; }
     try { speechSynthesis.cancel(); } catch (e) {}
     const u = new SpeechSynthesisUtterance(text); const v = this.pick(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'ms-MY';
-    u.rate = Number(S.settings.voiceRate) || 1; u.pitch = 1;
+    u.rate = (Number(S.settings.voiceRate) || 1) * (opts.stern ? 1.08 : 1); u.pitch = opts.stern ? 0.75 : 1; u.volume = 1;
     if (opts.onend) u.onend = opts.onend;
     speechSynthesis.speak(u); Notify.show('MyKajian', text.slice(0, 180));
   },
@@ -1014,6 +1180,8 @@ const Bell = {
   bell(times = 3) { this.unlock(); if (!this.ctx) return; const c = this.ctx, t0 = c.currentTime;
     for (let i = 0; i < times; i++) { const t = t0 + i * 0.55; [880, 1320, 1760].forEach((f, k) => { const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.35 / (k + 1), t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5); o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.55); }); } }
 };
+Bell.buzzer = function (times = 4) { this.unlock(); if (!this.ctx) return; const c = this.ctx, t0 = c.currentTime; for (let i = 0; i < times; i++) { const t = t0 + i * 0.45; const o = c.createOscillator(), g = c.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(180, t); o.frequency.linearRampToValueAtTime(140, t + 0.35); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.6, t + 0.02); g.gain.setValueAtTime(0.6, t + 0.3); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.4); o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.42); } };
+Bell.chime = function () { this.unlock(); if (!this.ctx) return; const c = this.ctx, t0 = c.currentTime; [523, 659, 784].forEach((f, i) => { const t = t0 + i * 0.18; const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.25, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6); o.connect(g).connect(c.destination); o.start(t); o.stop(t + 0.65); }); };
 document.addEventListener('pointerdown', () => Bell.unlock(), { once: true, capture: true });
 document.addEventListener('keydown', () => Bell.unlock(), { once: true, capture: true });
 
@@ -1028,6 +1196,63 @@ const Notify = {
     Notify.show('MyKajian · minggu ini', body, { tag: 'mykajian-weekly', silent: true, sticky: true, renotify: false }); }, 1500)
 };
 
+/* ---------- Penjadual jam (v2.0): waktu kerja, Pomodoro, keutamaan dateline ---------- */
+const Scheduler = {
+  _stale: false, _busy: false,
+  rangesFor(date) { const wh = S.settings.workHours || DEFAULT_WORK_HOURS; const d = fromISO(date); const r = wh[d.getDay()] || wh[String(d.getDay())] || []; return r.filter(x => x && x[0] && x[1] && hmToMin(x[1]) > hmToMin(x[0])).slice().sort((a, b) => a[0].localeCompare(b[0])); },
+  slotsFor(date) {
+    const work = Math.max(15, Number(S.settings.pomodoroWork) || 30), brk = Math.max(0, Number(S.settings.pomodoroBreak) || 0); const out = [];
+    this.rangesFor(date).forEach(([a, b]) => { let t = hmToMin(a); const end = hmToMin(b); while (end - t >= 15) { const len = Math.min(work, end - t); out.push({ start: minToHM(t), end: minToHM(t + len), min: len }); t += len + brk; } });
+    return out;
+  },
+  workMinutesBetween(from, to) { let m = 0; for (let d = from; d <= to; d = addDays(d, 1)) m += this.slotsFor(d).reduce((a, s) => a + s.min, 0); return m; },
+  remainingMin(t) { return Math.max(0, Math.round(estimateHours(t) * 60 * (100 - t.pct) / 100)); },
+  shortfalls() {
+    const today = todayISO(); const out = [];
+    S.tasksD.filter(t => t.status !== 'hijau' && t.due).forEach(t => { const need = this.remainingMin(t); if (!need) return; const cap = t.due < today ? 0 : this.workMinutesBetween(today, t.due); const others = S.tasksD.filter(x => x.status !== 'hijau' && x.id !== t.id && x.due && x.due <= t.due).reduce((a, x) => a + this.remainingMin(x), 0); if (need + others > cap) out.push({ title: t.title, due: t.due, hours: Math.max(1, Math.ceil((need + others - cap) / 60)) }); });
+    return out.slice(0, 3);
+  },
+  generate(fromDate, horizonDays) {
+    const today = todayISO(), nowM = hmToMin(nowHM()); const horizon = Math.max(7, horizonDays || S.settings.horizonDays || 60);
+    const tasks = S.tasksD.filter(t => t.status !== 'hijau').map(t => ({ id: t.id, due: t.due || addDays(today, horizon), remain: this.remainingMin(t) }));
+    // tolak blok manual pada masa hadapan yang sudah diperuntukkan
+    S.days.filter(d => d.date >= fromDate).forEach(d => d.blocks.forEach(b => { if (b.manual && b.taskId) { const t = tasks.find(x => x.id === b.taskId); if (t) t.remain = Math.max(0, t.remain - (hmToMin(b.end) - hmToMin(b.start))); } }));
+    const days = [];
+    for (let i = 0; i < horizon; i++) {
+      const date = addDays(fromDate, i); const existing = dayDoc(date); const manual = existing ? existing.blocks.filter(b => b.manual || (date === today && b.end <= nowHM()) || date < today) : [];
+      const keep = manual.slice(); const free = this.slotsFor(date).filter(s => !(date === today && hmToMin(s.end) <= nowM)).filter(s => !keep.some(k => hmToMin(k.start) < hmToMin(s.end) && hmToMin(s.start) < hmToMin(k.end)));
+      free.forEach(s => {
+        const cands = tasks.filter(t => t.remain > 0);
+        let pick = null;
+        if (cands.length) { cands.forEach(t => { const daysLeft = Math.max(0.5, diffDays(date, t.due)); t.score = t.due < date ? 1e9 + t.remain : t.remain / daysLeft; }); cands.sort((a, b) => b.score - a.score || a.due.localeCompare(b.due)); pick = cands[0]; }
+        keep.push({ id: uid(), start: s.start, end: s.end, taskId: pick ? pick.id : null, manual: false, done: false, note: '' });
+        if (pick) pick.remain = Math.max(0, pick.remain - s.min);
+      });
+      keep.sort((a, b) => a.start.localeCompare(b.start));
+      const doc = { id: date, date, blocks: keep, generatedAt: Date.now() };
+      const same = existing && JSON.stringify(existing.blocks.map(b => [b.start, b.end, b.taskId, b.manual, b.done])) === JSON.stringify(keep.map(b => [b.start, b.end, b.taskId, b.manual, b.done]));
+      if (!same) days.push(doc);
+    }
+    return days;
+  },
+  async regenerate(silent) {
+    if (this._busy) return; this._busy = true;
+    try { const days = this.generate(todayISO(), S.settings.horizonDays); if (days.length) await S.store.upsertDays(days); this._stale = false; Local.set('lastScheduleGen', Date.now()); if (!silent) toast(`Jadual dijana: ${days.length} hari dikemas kini`); if (!silent) render(); }
+    catch (e) { console.error(e); if (!silent) toast('Gagal menjana jadual: ' + e.message); }
+    finally { this._busy = false; }
+  },
+  markStale() { this._stale = true; if (S.settings.autoSchedule) { clearTimeout(this._t); this._t = setTimeout(() => this.regenerate(true).then(() => render()), 1500); } },
+  isStale() { return this._stale || !dayDoc(todayISO()) && this.rangesFor(todayISO()).length > 0 && S.tasksD.some(t => t.status !== 'hijau'); },
+  autoEnsure() {
+    if (!S.settings.autoSchedule || !S.tasks.length) return; const st = S.store; if (st.mode === 'cloud' && !(st.user && st.serverReady.days && st.serverReady.tasks)) return;
+    const today = todayISO(); const last = Local.get('lastScheduleGen', 0); const has = !!dayDoc(today) || !this.rangesFor(today).length;
+    if (!has || Date.now() - last > 6 * 3600 * 1000) { if (!this._auto) { this._auto = true; setTimeout(() => this.regenerate(true).then(() => { this._auto = false; render(); }), 800); } }
+  },
+  async saveBlock(date, block) { const d = dayDoc(date) || { id: date, date, blocks: [] }; const blocks = d.blocks.filter(b => b.id !== block.id); blocks.push(block); blocks.sort((a, b) => a.start.localeCompare(b.start)); await S.store.upsertDays([Object.assign({}, d, { blocks })]); },
+  async deleteBlock(date, id) { const d = dayDoc(date); if (!d) return; await S.store.upsertDays([Object.assign({}, d, { blocks: d.blocks.filter(b => b.id !== id) })]); },
+  alarmTimes(date) { const out = []; this.rangesFor(date).forEach(([a, b]) => { for (let t = hmToMin(a); t < hmToMin(b); t += 60) out.push(minToHM(t)); }); return out; }
+};
+
 /* ---------- Penjadual peringatan ---------- */
 const Reminder = {
   timer: null, alarmTimer: null,
@@ -1037,8 +1262,9 @@ const Reminder = {
     const s = S.settings, today = todayISO(), now = Date.now();
     // taklimat pagi sekali sehari
     if (s.morningBrief && this.inActive() && Local.get('lastBriefDate', '') !== today && S.tasks.length) { Speech.dailyBrief(false); }
-    // peringatan berulang mengikut selang
-    else if (s.reminderInterval > 0 && this.inActive() && now - Local.get('lastSpokenAt', 0) >= s.reminderInterval * 60000 && S.tasks.length) { Speech.dailyBrief(false); }
+    // peringatan berulang mengikut selang (di luar slot kerja apabila alarm tegas aktif)
+    else if (s.reminderInterval > 0 && this.inActive() && now - Local.get('lastSpokenAt', 0) >= s.reminderInterval * 60000 && S.tasks.length && !(s.sternAlarm && this.inWorkRange())) { Speech.dailyBrief(false); }
+    this.checkStern(); this.checkPomodoro();
     // loceng log harian
     const hasLog = S.logs.some(l => l.date === today);
     const due = nowHM() >= s.logDeadline && !hasLog && s.bell && S.tasks.length && now >= (S.alarm.snoozedUntil || 0);
@@ -1046,24 +1272,58 @@ const Reminder = {
     // rumusan mingguan Ahad malam
     const d = new Date(); if (d.getDay() === 0 && d.getHours() >= 20 && Local.get('lastWeeklyShown', '') !== weekStart(today) && S.tasks.length) { Local.set('lastWeeklyShown', weekStart(today)); location.hash = '#/mingguan'; Speech.say('Ini rumusan mingguan anda. ' + weeklySpeech(weekStart(today))); }
   },
+  inWorkRange() { const hm = nowHM(); return Scheduler.rangesFor(todayISO()).some(([a, b]) => a <= hm && hm < b); },
+  checkStern() {
+    const s = S.settings; if (!s.sternAlarm || !S.tasks.length) return; const today = todayISO(), hm = nowHM(); const key = today + ' ' + hm;
+    if (!Scheduler.alarmTimes(today).includes(hm) || Local.get('lastStern', '') === key) return;
+    Local.set('lastStern', key); this.sternNow(false);
+  },
+  sternText() {
+    const today = todayISO(), hm = nowHM(), s = S.settings; const cur = currentBlock(today, hm), nxt = nextBlock(today, hm);
+    let msg = `${s.userTitle}! Sekarang pukul ${fmtHM12(hm)}. `;
+    if (cur && cur.taskId && taskOf(cur.taskId)) { const t = taskOf(cur.taskId); msg += `Anda sepatutnya sedang membuat: ${t.title}. Kemajuan baru ${t.pct} peratus. Dateline ${daysLabel(t.daysToDue)}. `; if (cur.note) msg += `Nota: ${cur.note}. `; msg += t.daysToDue != null && t.daysToDue <= 2 ? 'Ini sudah kritikal. Tutup semua gangguan dan siapkan sekarang.' : 'Jangan tangguh. Tiga puluh minit fokus penuh, kemudian rehat lima minit.'; }
+    else if (cur) msg += 'Blok ini bebas. Gunakan untuk semakan atau susulan e-mel, jangan biarkan kosong.';
+    else if (nxt) msg += `Tiada blok sekarang. Blok seterusnya ${nxt.date === today ? '' : fmtDateShort(nxt.date) + ' '}pukul ${fmtHM12(nxt.block.start)}: ${blockLabel(nxt.block)}. Bersedia.`;
+    else msg += 'Tiada jadual dijana. Buka MyKajian dan tekan Jana semula jadual sekarang.';
+    return msg;
+  },
+  sternNow(test) { Bell.buzzer(4); setTimeout(() => Speech.say(this.sternText(), { stern: true }), 1900); Local.set('lastSpokenAt', Date.now()); if (test) toast('Alarm tegas diuji'); },
+  checkPomodoro() {
+    const s = S.settings; if (!s.breakChime) return; const today = todayISO(), hm = nowHM(); const key = today + ' ' + hm; if (Local.get('lastChime', '') === key) return;
+    const blocks = blocksOf(today); const ending = blocks.find(b => b.end === hm), starting = blocks.find(b => b.start === hm);
+    if (!ending && !starting) return; Local.set('lastChime', key);
+    if (Scheduler.alarmTimes(today).includes(hm)) return; // alarm tegas sudah mengambil alih pada minit ini
+    Bell.chime();
+    if (ending && !starting) setTimeout(() => Speech.say(`Rehat ${s.pomodoroBreak} minit. Bangun, regangkan badan, minum air.`), 900);
+    else if (starting) setTimeout(() => Speech.say(`Sambung kerja: ${blockLabel(starting)}.`), 900);
+  },
   startAlarm() { S.alarm.active = true; renderBanners(); const ring = () => { Bell.bell(3); Speech.say(`${S.settings.userTitle}, log progress hari ini belum diisi. Sila isi sekarang.`); }; ring(); this.alarmTimer = setInterval(ring, 30000); if (!$('.modal')) openLogForm(); },
   stopAlarm() { S.alarm.active = false; clearInterval(this.alarmTimer); this.alarmTimer = null; try { speechSynthesis.cancel(); } catch (e) {} renderBanners(); },
   snooze() { S.alarm.snoozedUntil = Date.now() + 15 * 60000; this.stopAlarm(); toast('Loceng ditunda 15 minit'); }
 };
 
 /* ---------- Widget terapung ---------- */
+function widgetArchiveHTML() {
+  const done = S.tasksD.filter(t => t.status === 'hijau').sort((a, b) => (b.doneDate || '').localeCompare(a.doneDate || ''));
+  const items = done.length ? done.map(t => { const early = t.doneDate && t.due ? diffDays(t.doneDate, t.due) : null; return `<div class="wgitem done"><span class="stripe" style="background:var(--hijau)"></span><div><div class="t">✅ ${esc(t.title)}</div><div class="s">${t.doneDate ? 'siap ' + fmtDateShort(t.doneDate) : 'siap'}${early != null ? (early >= 0 ? ` · ${early} hari lebih awal` : ` · lewat ${-early} hari`) : ''} · ${t.bab || ''}</div></div><span class="chip hijau">100%</span></div>`; }).join('') : '<div class="s muted" style="padding:6px 2px">Belum ada tugasan selesai. Yang pertama akan muncul di sini.</div>';
+  return `<div class="wgarc"><div class="s" style="margin-bottom:6px">${done.length ? reflectionLine(done) : 'Arkib pencapaian Prof Dr.'}</div><div class="wglist">${items}</div></div>`;
+}
 function widgetHTML(selDate) {
-  const today = todayISO(), ws = weekStart(today), sel = selDate || S.widgetSel || today;
+  const today = todayISO(), ws = weekStart(today), sel = selDate || S.widgetSel || today; const tab = S.widgetTab || 'sekarang';
   const T = S.tasksD.filter(t => t.status !== 'hijau');
+  const hm = nowHM(); const cur = currentBlock(today, hm), nxt = nextBlock(today, hm);
+  const nowline = cur ? `<div class="wgnow live"><div class="s">⏱ SEKARANG ${cur.start} hingga ${cur.end}</div><div class="t">${esc(blockLabel(cur))}</div></div>` : nxt ? `<div class="wgnow"><div class="s">⏱ SETERUSNYA ${nxt.date === today ? '' : fmtDateShort(nxt.date) + ' '}${nxt.block.start}</div><div class="t">${esc(blockLabel(nxt.block))}</div></div>` : '';
   const strip = Array.from({ length: 7 }, (_, i) => { const d = addDays(ws, i), dd = fromISO(d); const ev = T.filter(t => t.due === d || t.target === d);
     return `<button class="${d === today ? 'today' : ''} ${d === sel ? 'sel' : ''}" data-d="${d}">${DAYS_S[dd.getDay()]}<b>${dd.getDate()}</b><span class="c">${ev.slice(0, 4).map(t => `<i style="background:var(--${t.variable.toLowerCase()})"></i>`).join('')}</span></button>`; }).join('');
   const dayT = T.filter(t => t.due === sel || t.target === sel || (t.start && t.due && t.start <= sel && sel <= t.due)).sort((a, b) => (a.due === sel ? 0 : 1) - (b.due === sel ? 0 : 1) || a.due.localeCompare(b.due));
   const list = dayT.length ? dayT.map(t => `<div class="wgitem" data-id="${t.id}"><span class="stripe" style="background:var(--${t.variable.toLowerCase()})"></span><div><div class="t">${t.due === sel ? '⏰ ' : t.target === sel ? '🎯 ' : ''}${esc(t.title)}</div><div class="s">${VARS[t.variable].short} · ${t.due === sel ? 'dateline hari ini' : 'dateline ' + fmtDateShort(t.due) + ' · ' + daysLabel(t.daysToDue)}</div></div><span class="chip ${t.status}">${t.pct}%</span></div>`).join('') : '<div class="s muted" style="padding:6px 2px">Tiada tugasan pada hari ini.</div>';
-  const hasLog = S.logs.some(l => l.date === today);
-  return `<div class="wg" id="wg"><div class="wghead"><b>MyKajian · ${sel === today ? 'hari ini' : fmtDateShort(sel)}</b><span><button class="btn sm ghost" data-act="speak" title="Dengar">🔊</button><button class="btn sm ghost" data-act="mini" title="Kecilkan">▁</button></span></div><div class="wkstrip">${strip}</div><div class="wglist">${list}</div><div class="wgfoot"><span>${hasLog ? '✅ log hari ini diisi' : '⏳ log hari ini belum diisi'}</span><button class="btn sm" data-act="log">+ Log</button></div></div>`;
+  const hasLog = S.logs.some(l => l.date === today); const doneN = S.tasksD.filter(t => t.status === 'hijau').length;
+  const body = tab === 'arkib' ? widgetArchiveHTML() : `${nowline}<div class="wkstrip">${strip}</div><div class="wglist">${list}</div>`;
+  return `<div class="wg" id="wg"><div class="wghead"><b>MyKajian · ${sel === today ? 'hari ini' : fmtDateShort(sel)}</b><span><button class="btn sm ghost" data-act="speak" title="Dengar">🔊</button><button class="btn sm ghost" data-act="mini" title="Kecilkan">▁</button></span></div><div class="wgtabs"><button class="${tab === 'sekarang' ? 'active' : ''}" data-tab="sekarang">Sekarang</button><button class="${tab === 'arkib' ? 'active' : ''}" data-tab="arkib">🏆 Arkib (${doneN})</button></div>${body}<div class="wgfoot"><span>${hasLog ? '✅ log hari ini diisi' : '⏳ log hari ini belum diisi'}</span><button class="btn sm" data-act="log">+ Log</button></div></div>`;
 }
 function bindWidget(root) {
-  root.addEventListener('click', e => { const b = e.target.closest('button[data-d]'); if (b) { S.widgetSel = b.dataset.d; updateWidget(); return; }
+  root.addEventListener('click', e => { const tb = e.target.closest('button[data-tab]'); if (tb) { S.widgetTab = tb.dataset.tab; if (S.pipWin) updateWidget(); else renderWidgetInto(root); return; }
+    const b = e.target.closest('button[data-d]'); if (b) { S.widgetSel = b.dataset.d; if (S.pipWin) updateWidget(); else renderWidgetInto(root); return; }
     const it = e.target.closest('.wgitem'); if (it) { if (S.pipWin) { window.focus(); location.hash = '#/tugasan'; openTaskForm(it.dataset.id); } else if (window.opener) { window.opener.focus(); } return; }
     const a = e.target.closest('button[data-act]'); if (!a) return;
     if (a.dataset.act === 'speak') Speech.dailyBrief(true); if (a.dataset.act === 'log') { if (S.pipWin) { window.focus(); openLogForm(); } else if (window.opener) { window.opener.openLogForm(); window.opener.focus(); } else openLogForm(); }
@@ -1091,10 +1351,10 @@ const Helpdesk = {
     const today = todayISO(), s = S.settings;
     const tasks = S.tasksD.filter(t => t.status !== 'hijau').map(t => ({ tajuk: t.title, pembolehubah: VARS[t.variable].short, mula: t.start, dateline: t.due, target: t.target || null, peratus: t.pct, status: STATUS_LABEL[t.status], hari_ke_dateline: t.daysToDue, huraian: (t.description || '').slice(0, 300), log_terakhir: t.lastLog ? { tarikh: t.lastLog.date, disiapkan: t.lastLog.done, halangan: t.lastLog.blockers || '' } : null }));
     const logs = S.logs.filter(l => l.date >= addDays(today, -14)).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30).map(l => ({ tarikh: l.date, tugasan: (S.tasks.find(t => t.id === l.taskId) || {}).title, disiapkan: l.done, halangan: l.blockers, peratus: l.percent }));
-    return { tarikh_hari_ini: today, hari: DAYS[new Date().getDay()], jam_kerja_sehari: s.workHoursPerDay, waktu_aktif: `${s.activeStart} hingga ${s.activeEnd}`, tugasan_aktif: tasks, log_14_hari: logs };
+    return { tarikh_hari_ini: today, hari: DAYS[new Date().getDay()], jam_kerja_sehari: s.workHoursPerDay, waktu_kerja_mingguan: Object.fromEntries([0,1,2,3,4,5,6].map(d => [DAYS[d], (Scheduler.rangesFor(addDays(weekStart(today), (d + 6) % 7))).map(r => r.join('-'))])), pomodoro: `${s.pomodoroWork} minit kerja, ${s.pomodoroBreak} minit rehat`, jadual_hari_ini: blocksOf(today).map(b => `${b.start}-${b.end} ${blockLabel(b)}`), kekurangan_masa: Scheduler.shortfalls(), tugasan_aktif: tasks, log_14_hari: logs };
   },
   systemPrompt() {
-    return `Anda ialah Helpdesk MyKajian, pembantu perancangan untuk seorang calon PhD di Malaysia (gelaran: ${S.settings.userTitle}) yang mengkaji pengaruh kepimpinan digital guru besar (IV) terhadap kompetensi digital guru (DV) dengan pengurusan pengetahuan digital organisasi sebagai perantara. Jawab sepenuhnya dalam Bahasa Melayu Malaysia yang formal, ringkas dan praktikal. Jangan gunakan em-dash. Gunakan tajuk Markdown (##), senarai dan jadual apabila sesuai. Sentiasa rujuk tarikh sebenar. Apabila diminta jadual, berikan: (1) tugasan bertindih dan cadangan susunan keutamaan dengan alasan, (2) jadual hari ini dengan blok masa, (3) jadual minggu ini mengikut hari, (4) pencapaian bulan ini, (5) anggaran tempoh setiap tugasan beserta langkah kerja (kaedah) yang konkrit. Peringatkan jika beban melebihi jam kerja sehari yang tersedia.`;
+    return `Anda ialah pembantu peribadi profesional (Personal Assistant) kepada seorang calon PhD di Malaysia (gelaran: ${S.settings.userTitle}). Anda bertanggungjawab memastikan beliau tidak gagal: tegas tetapi hormat, berterus terang tentang risiko dateline, dan sentiasa memberi langkah konkrit seterusnya. Beliau yang mengkaji pengaruh kepimpinan digital guru besar (IV) terhadap kompetensi digital guru (DV) dengan pengurusan pengetahuan digital organisasi sebagai perantara. Jawab sepenuhnya dalam Bahasa Melayu Malaysia yang formal, ringkas dan praktikal. Jangan gunakan em-dash. Gunakan tajuk Markdown (##), senarai dan jadual apabila sesuai. Sentiasa rujuk tarikh sebenar. Apabila diminta jadual, berikan: (1) tugasan bertindih dan cadangan susunan keutamaan dengan alasan, (2) jadual hari ini dengan blok masa, (3) jadual minggu ini mengikut hari, (4) pencapaian bulan ini, (5) anggaran tempoh setiap tugasan beserta langkah kerja (kaedah) yang konkrit. Peringatkan jika beban melebihi jam kerja sehari yang tersedia.`;
   },
   async models(key) {
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}&pageSize=100`); if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -1174,7 +1434,7 @@ const PWA = {
 /* ---------- permulaan ---------- */
 async function boot() {
   Speech.init(); PWA.init();
-  const cfg = FIREBASE_CONFIG || Local.get('firebaseConfig', null);
+  const cfg = /[?&]local=1/.test(location.search) ? null : (FIREBASE_CONFIG || Local.get('firebaseConfig', null));
   if (cfg) { try { S.store = await Promise.race([new CloudStore(cfg).init(), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 20000))]); } catch (e) { console.error(e); toast('Awan tidak dapat dimuatkan (' + e.message + '); mod tempatan digunakan buat sementara. Muat semula halaman untuk cuba lagi.', 6000); S.store = await new LocalStore().init(); } }
   else S.store = await new LocalStore().init();
   S.store.onChange(applyData);
