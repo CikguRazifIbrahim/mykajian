@@ -324,6 +324,17 @@ body.widget .shell { display: block; }
 .wg .wgnow { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; } .wg .wgnow.live { background: var(--accent-soft); border-color: var(--accent); } .wg .wgnow .t { font-weight: 600; font-size: 13px; line-height: 1.3; } .wg .wgnow .s { font-size: 11px; color: var(--muted); }
 .wg .wgitem.done .t { color: var(--ink); }
 .wg.mini .wgtabs, .wg.mini .wgnow, .wg.mini .wgarc { display: none; }
+
+/* ---------- v2.1 ---------- */
+.chip.ms { background: var(--accent); color: var(--accent-ink); }
+.card.focus { border-color: var(--accent); background: var(--accent-soft); } .card.focus .t { font-family: var(--serif); font-size: 18px; font-weight: 600; line-height: 1.3; }
+.cdlist { display: grid; gap: 6px; } .cd { display: grid; grid-template-columns: 52px 1fr; gap: 10px; align-items: center; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; cursor: pointer; background: var(--surface); }
+.cd .n { font-family: var(--serif); font-size: 26px; font-weight: 600; text-align: center; color: var(--hijau); } .cd.soon .n { color: var(--kuning); } .cd.late .n { color: var(--merah); } .cd .t { font-weight: 600; font-size: 14px; }
+table.rm { font-size: 13.5px; } table.rm th, table.rm td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; text-align: left; } table.rm tr.now td { background: var(--accent-soft); } table.rm tr.done td { opacity: .6; } table.rm tr.late td b { color: var(--merah); } table.rm tbody tr[onclick] { cursor: pointer; }
+.tablewrap { overflow-x: auto; }
+.rmin { padding: 4px 6px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--surface); font-size: 12.5px; width: 120px; }
+.wg .wgweek { font-size: 11.5px; color: var(--accent); font-weight: 600; margin-bottom: 6px; line-height: 1.3; }
+.wg.mini .wgweek { display: none; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media print { .nav, .topbar, .tabbar { display: none; } }
 </style>
@@ -341,6 +352,7 @@ body.widget .shell { display: block; }
   <nav class="nav" id="nav">
     <a href="#/papan" data-v="papan"><span class="ic">▦</span>Papan pemuka</a>
     <a href="#/jadual" data-v="jadual"><span class="ic">⏱</span>Jadual jam</a>
+    <a href="#/petajalan" data-v="petajalan"><span class="ic">🗺</span>Peta jalan</a>
     <a href="#/kalendar" data-v="kalendar"><span class="ic">▤</span>Kalendar</a>
     <a href="#/gantt" data-v="gantt"><span class="ic">▬</span>Carta Gantt</a>
     <a href="#/tugasan" data-v="tugasan"><span class="ic">☑</span>Tugasan</a>
@@ -349,7 +361,7 @@ body.widget .shell { display: block; }
     <a href="#/helpdesk" data-v="helpdesk"><span class="ic">✦</span>Helpdesk AI</a>
     <a href="#/tetapan" data-v="tetapan"><span class="ic">⚙</span>Tetapan</a>
     <span class="grow"></span>
-    <div class="navfoot">MyKajian v2.0<br><span id="navMode">Mod tempatan</span></div>
+    <div class="navfoot">MyKajian v2.1<br><span id="navMode">Mod tempatan</span></div>
   </nav>
   <main class="main" id="main">
     <div id="banners"></div>
@@ -378,7 +390,7 @@ body.widget .shell { display: block; }
 /* Fasa 2: tampal konfigurasi Firebase di sini ATAU dalam Tetapan apps. */
 const FIREBASE_CONFIG = {"apiKey": "AIzaSyDuDUS6pVbVlTOY9Z2veIodiCxnL-8pOQc", "authDomain": "mykajian-ebe7e.firebaseapp.com", "projectId": "mykajian-ebe7e", "storageBucket": "mykajian-ebe7e.firebasestorage.app", "messagingSenderId": "351646083181", "appId": "1:351646083181:web:cbe520f6168564a6687764"};
 const FIREBASE_VERSION = '12.18.0';
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.1.0';
 
 const VARS = {
   IV:   { code: 'IV',   short: 'IV',        name: 'Kepimpinan Digital Guru Besar', role: 'Pembolehubah bebas' },
@@ -428,7 +440,9 @@ const DEFAULT_SETTINGS = {
   sternAlarm: true,
   breakChime: true,
   horizonDays: 60,
-  autoSchedule: true
+  autoSchedule: true,
+  alarmMode: 'hourly',
+  countdownDays: 14
 };
 
 /* ---------- utiliti ---------- */
@@ -491,7 +505,7 @@ function decorate(tasks, logs) {
 
 /* ---------- Store: tempatan ---------- */
 class LocalStore {
-  constructor() { this.mode = 'local'; this.data = Local.get('data', null) || { tasks: [], logs: [], helpdesk: [], days: [], settings: {} }; this.data.days = this.data.days || []; this.listeners = []; this.pending = 0; }
+  constructor() { this.mode = 'local'; this.data = Local.get('data', null) || { tasks: [], logs: [], helpdesk: [], days: [], roadmap: {}, settings: {} }; this.data.days = this.data.days || []; this.data.roadmap = this.data.roadmap || {}; this.listeners = []; this.pending = 0; }
   async init() { return this; }
   snapshot() { return this.data; }
   onChange(fn) { this.listeners.push(fn); }
@@ -505,13 +519,14 @@ class LocalStore {
   async deleteHelpdesk(id) { this.data.helpdesk = this.data.helpdesk.filter(h => h.id !== id); this._save(); }
   async upsertDays(list) { for (const d of list) { const i = this.data.days.findIndex(x => x.date === d.date); d.updatedAt = Date.now(); if (i >= 0) this.data.days[i] = d; else this.data.days.push(d); } this._save(); }
   async deleteDay(date) { this.data.days = this.data.days.filter(d => d.date !== date); this._save(); }
+  async saveRoadmap(patch) { this.data.roadmap = Object.assign({}, this.data.roadmap, patch); this._save(); }
   exportJSON() { return JSON.stringify(Object.assign({ exportedAt: new Date().toISOString(), app: 'MyKajian', version: APP_VERSION }, this.data), null, 2); }
-  async importJSON(obj) { this.data = { tasks: obj.tasks || [], logs: obj.logs || [], helpdesk: obj.helpdesk || [], days: obj.days || [], settings: obj.settings || {} }; this._save(); }
+  async importJSON(obj) { this.data = { tasks: obj.tasks || [], logs: obj.logs || [], helpdesk: obj.helpdesk || [], days: obj.days || [], roadmap: obj.roadmap || {}, settings: obj.settings || {} }; this._save(); }
 }
 
 /* ---------- Store: Firestore (awan, luar talian terbina dalam) ---------- */
 class CloudStore {
-  constructor(config) { this.mode = 'cloud'; this.config = config; this.data = { tasks: [], logs: [], helpdesk: [], days: [], settings: {} }; this.listeners = []; this.pending = 0; this.user = null; this.ready = false; this.serverReady = {}; this.unsubs = []; this.online = navigator.onLine; }
+  constructor(config) { this.mode = 'cloud'; this.config = config; this.data = { tasks: [], logs: [], helpdesk: [], days: [], roadmap: {}, settings: {} }; this.listeners = []; this.pending = 0; this.user = null; this.ready = false; this.serverReady = {}; this.unsubs = []; this.online = navigator.onLine; }
   async init() {
     const v = FIREBASE_VERSION, base = `https://www.gstatic.com/firebasejs/${v}/`;
     const [app, auth, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
@@ -544,6 +559,7 @@ class CloudStore {
     };
     sub('tasks', 'tasks'); sub('logs', 'logs'); sub('helpdesk', 'helpdesk'); sub('days', 'days');
     this.unsubs.push(fs.onSnapshot(fs.doc(db, 'users', u, 'settings', 'main'), snap => { this.data.settings = snap.exists() ? snap.data() : {}; if (!snap.metadata.fromCache) this.serverReady.settings = true; this.ready = true; this._notify(); }));
+    this.unsubs.push(fs.onSnapshot(fs.doc(db, 'users', u, 'roadmap', 'main'), snap => { this.data.roadmap = snap.exists() ? snap.data() : {}; if (!snap.metadata.fromCache) this.serverReady.roadmap = true; this._notify(); }));
   }
   _ref(col, id) { return this.fb.fs.doc(this.db, 'users', this.user.uid, col, id); }
   async signInEmail(email, pass) { const { auth } = this.fb; try { await auth.signInWithEmailAndPassword(this.auth, email, pass); } catch (e) { if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') throw e; throw e; } }
@@ -560,20 +576,21 @@ class CloudStore {
   async deleteHelpdesk(id) { this.fb.fs.deleteDoc(this._ref('helpdesk', id)); this.data.helpdesk = this.data.helpdesk.filter(h => h.id !== id); this._notify(); }
   async upsertDays(list) { const { fs } = this.fb; for (const d of list) { d.updatedAt = Date.now(); d.id = d.date; fs.setDoc(this._ref('days', d.date), d).catch(e => console.warn('day', e)); const i = this.data.days.findIndex(x => x.date === d.date); if (i >= 0) this.data.days[i] = d; else this.data.days.push(d); } this._notify(); }
   async deleteDay(date) { this.fb.fs.deleteDoc(this._ref('days', date)); this.data.days = this.data.days.filter(d => d.date !== date); this._notify(); }
+  async saveRoadmap(patch) { this.data.roadmap = Object.assign({}, this.data.roadmap, patch); this.fb.fs.setDoc(this._ref('roadmap', 'main'), this.data.roadmap, { merge: true }).catch(e => toast('Gagal simpan peta jalan')); this._notify(); }
   _optimistic(key, obj) { const arr = this.data[key]; const i = arr.findIndex(x => x.id === obj.id); if (i >= 0) arr[i] = obj; else arr.push(obj); this._notify(); }
   exportJSON() { return JSON.stringify(Object.assign({ exportedAt: new Date().toISOString(), app: 'MyKajian', version: APP_VERSION }, this.data), null, 2); }
-  async importJSON(obj) { for (const t of (obj.tasks || [])) await this.upsertTask(t); for (const l of (obj.logs || [])) await this.upsertLog(l); if (obj.days && obj.days.length) await this.upsertDays(obj.days); if (obj.settings) await this.saveSettings(obj.settings); }
+  async importJSON(obj) { for (const t of (obj.tasks || [])) await this.upsertTask(t); for (const l of (obj.logs || [])) await this.upsertLog(l); if (obj.days && obj.days.length) await this.upsertDays(obj.days); if (obj.roadmap) await this.saveRoadmap(obj.roadmap); if (obj.settings) await this.saveSettings(obj.settings); }
 }
 
 /* ---------- keadaan global ---------- */
 const S = {
-  store: null, settings: Object.assign({}, DEFAULT_SETTINGS), tasks: [], logs: [], helpdesk: [], days: [], tasksD: [], jadualDate: todayISO(),
+  store: null, settings: Object.assign({}, DEFAULT_SETTINGS), tasks: [], logs: [], helpdesk: [], days: [], roadmap: {}, tasksD: [], jadualDate: todayISO(), rmTab: 'tonggak',
   view: 'papan', calMode: Local.get('calMode', 'bulan'), calDate: todayISO(), selDate: todayISO(),
   filters: { v: 'ALL', s: 'ALL', b: 'ALL' }, timeline: null, jadualTimeline: null, pipWin: null, alarm: { active: false, snoozedUntil: 0 }, installPrompt: null
 };
 function applyData(d) {
   S.tasks = d.tasks || []; S.logs = d.logs || []; S.helpdesk = (d.helpdesk || []).slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-  S.days = (d.days || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+  S.days = (d.days || []).slice().sort((a, b) => a.date.localeCompare(b.date)); S.roadmap = d.roadmap || {};
   S.settings = Object.assign({}, DEFAULT_SETTINGS, d.settings || {}); if (!S.settings.workHours || typeof S.settings.workHours !== 'object') S.settings.workHours = DEFAULT_WORK_HOURS;
   S.tasksD = decorate(S.tasks, S.logs).sort(sortTasks);
   applyTheme(); renderSync(); render(); updateWidget(); Notify.weeklyPersistent();
@@ -609,14 +626,44 @@ function seedTasks() {
     mk('Siapkan satu artikel untuk BPG', 'UMUM', '2026-11-01', '2026-11-30', '2026-11-23', 'Artikel baharu untuk BPG: tentukan fokus, susun literatur, tulis draf penuh, semak format.', 'Bab 2', 40)
   ];
 }
-</script>
-<script>
+
+/* ---------- Pengimport peta jalan (v2.1) ---------- */
+async function importPlan(obj, opts = {}) {
+  if (!obj || !obj.plan) throw new Error('Fail bukan peta jalan MyKajian');
+  const plan = obj.plan; const idMap = {};
+  // 1. tugasan tonggak (id tetap supaya import semula tidak menggandakan)
+  for (const t of (plan.tasks || [])) { const old = S.tasks.find(x => x.id === t.id); const doc = Object.assign({ progress: 0, archived: false, startTime: '', endTime: '' }, old || {}, t, { milestone: true }); if (old && old.progress) doc.progress = old.progress; await S.store.upsertTask(doc); idMap[t.id] = t.id; }
+  // 2. rujukan tugasan sedia ada mengikut kata kunci tajuk
+  for (const [key, pattern] of Object.entries(plan.taskRefs || {})) { const re = new RegExp(pattern, 'i'); const hit = S.tasks.find(x => re.test(x.title)); if (hit) idMap[key] = hit.id; }
+  // 3. blok harian (manual, bertajuk)
+  const days = [];
+  for (const d of (plan.days || [])) {
+    const existing = dayDoc(d.date); const keepManual = existing ? existing.blocks.filter(b => b.manual && !b.plan) : [];
+    const blocks = d.blocks.map((b, i) => ({ id: 'pl-' + d.date + '-' + i, start: b.start, end: b.end, title: b.title, taskId: b.taskRef ? (idMap[b.taskRef] || null) : null, manual: true, plan: true, done: (existing && (existing.blocks.find(x => x.id === 'pl-' + d.date + '-' + i) || {}).done) || false, note: b.note || '' }));
+    const merged = keepManual.filter(k => !blocks.some(b => hmToMin(k.start) < hmToMin(b.end) && hmToMin(b.start) < hmToMin(k.end))).concat(blocks).sort((a, b) => a.start.localeCompare(b.start));
+    days.push({ id: d.date, date: d.date, blocks: merged, goal: d.goal || '', week: d.week || '', holiday: d.holiday || '', generatedAt: Date.now() });
+  }
+  if (days.length) await S.store.upsertDays(days);
+  // 4. peta jalan (minggu, kelulusan, pakar, risiko)
+  const rm = Object.assign({}, S.roadmap || {});
+  const mergeRows = (key, rows, idKey) => { const old = Array.isArray(rm[key]) ? rm[key] : []; rm[key] = (rows || []).map(r => { const o = old.find(x => x[idKey] === r[idKey]); return o ? Object.assign({}, r, { status: o.status, received: o.received, actual: o.actual, note: o.note !== undefined ? o.note : r.note }) : r; }); };
+  mergeRows('weeks', plan.weeks, 'week'); mergeRows('approvals', plan.approvals, 'name'); mergeRows('experts', plan.experts, 'role'); mergeRows('risks', plan.risks, 'risk');
+  rm.meta = plan.meta || rm.meta || {}; rm.importedAt = Date.now();
+  await S.store.saveRoadmap(rm);
+  if (S.settings.autoSchedule) Scheduler.markStale();
+  return { tasks: (plan.tasks || []).length, days: days.length, blocks: days.reduce((a, d) => a + d.blocks.length, 0), weeks: (plan.weeks || []).length };
+}
+function currentWeekPlan(date) { const w = (S.roadmap && S.roadmap.weeks) || []; return w.find(x => x.from <= date && date <= x.to) || null; }
+function milestones() { return S.tasksD.filter(t => t.milestone).sort((a, b) => (a.due || '').localeCompare(b.due || '')); }
+function upcomingMilestones(days) { const today = todayISO(); return milestones().filter(t => t.status !== 'hijau' && t.due && diffDays(today, t.due) <= (days || S.settings.countdownDays || 14)); }
+function countdownText(limit) { const up = upcomingMilestones(); if (!up.length) return ''; return up.slice(0, limit || 3).map(t => `${t.title}: ${t.daysToDue < 0 ? 'lewat ' + (-t.daysToDue) + ' hari' : t.daysToDue === 0 ? 'hari ini' : t.daysToDue + ' hari lagi'}`).join('. ') + '.'; }
+</script><script>
 /* =====================================================================
    Bahagian 2: penghala, paparan, borang
    ===================================================================== */
 
 /* ---------- penghala ---------- */
-const VIEWS = ['papan', 'jadual', 'kalendar', 'gantt', 'tugasan', 'log', 'mingguan', 'helpdesk', 'tetapan'];
+const VIEWS = ['papan', 'jadual', 'petajalan', 'kalendar', 'gantt', 'tugasan', 'log', 'mingguan', 'helpdesk', 'tetapan'];
 function route() {
   const h = location.hash.replace(/^#\/?/, '');
   if (h === 'widget') { document.body.classList.add('widget'); renderWidgetInto($('#shell')); return; }
@@ -634,6 +681,7 @@ function render() {
   switch (S.view) {
     case 'papan': el.innerHTML = vDashboard(); break;
     case 'jadual': el.innerHTML = vSchedule(); requestAnimationFrame(mountJadual); break;
+    case 'petajalan': el.innerHTML = vRoadmap(); break;
     case 'kalendar': el.innerHTML = vCalendar(); break;
     case 'gantt': el.innerHTML = vGantt(); requestAnimationFrame(mountGantt); break;
     case 'tugasan': el.innerHTML = vTasks(); break;
@@ -658,7 +706,7 @@ function renderBanners() {
 /* ---------- komponen kecil ---------- */
 function chipV(v) { const x = VARS[v] || VARS.UMUM; return `<span class="chip ${x.code}" title="${esc(x.name)}">${x.short}</span>`; }
 function chipsV(t) { return (t.vars || taskVars(t)).map(chipV).join(' '); }
-function chipB(t) { const b = t.bab || taskBab(t); return b ? `<span class="chip bab">${esc(b)}</span>` : '<span class="chip bab none">Bab?</span>'; }
+function chipB(t) { const b = t.bab || taskBab(t); return (t.milestone ? '<span class="chip ms">Tonggak</span> ' : '') + (b ? `<span class="chip bab">${esc(b)}</span>` : '<span class="chip bab none">Bab?</span>'); }
 function chipS(s, pct) { return `<span class="chip ${s}">${STATUS_LABEL[s]}${s === 'kuning' && pct != null ? ' · ' + pct + '%' : ''}</span>`; }
 function daysChip(n) { if (n == null) return ''; const c = n < 0 ? 'late' : n <= 3 ? 'soon' : ''; return `<span class="days ${c}">${daysLabel(n)}</span>`; }
 function taskCard(t, opts = {}) {
@@ -690,7 +738,7 @@ function vDashboard() {
   return `
   <div class="pagehead"><div><h1>${greeting()}, ${esc(S.settings.userTitle)}</h1><div class="sub">${fmtDate(today, true)} · ${active.length} tugasan aktif · ${logsToday.length ? 'log hari ini sudah diisi' : 'log hari ini belum diisi'}</div></div>
     <div class="btnrow"><button class="btn" onclick="Speech.dailyBrief(true)">🔊 Dengar tugasan hari ini</button><button class="btn primary" onclick="openLogForm()">✎ Isi log hari ini</button></div></div>
-  ${blockNowCard()}
+  ${weekFocusCard()}${blockNowCard()}
   <div class="grid two">
     <div class="card"><h3>Hari ini</h3>
       ${overdue.length ? `<div class="banner warn" style="margin-bottom:10px">⚠️ <span class="grow">${overdue.length} tugasan sudah melepasi dateline.</span></div>` : ''}
@@ -702,6 +750,7 @@ function vDashboard() {
       <div style="margin-top:12px">${varRows}</div>
     </div>
   </div>
+  ${countdownCard() ? '<div style="margin-top:14px">' + countdownCard() + '</div>' : ''}
   <div class="grid two" style="margin-top:14px">
     <div class="card"><h3>Dateline 30 hari akan datang</h3>${overdue.length ? `<div class="tasklist" style="margin-bottom:8px">${overdue.map(t => taskCard(t)).join('')}</div>` : ''}${upcoming.length ? `<div class="tasklist">${upcoming.map(t => taskCard(t)).join('')}</div>` : '<p class="muted">Tiada dateline dalam 30 hari akan datang.</p>'}</div>
     <div class="card"><h3>Log terkini</h3>${recent.length ? recent.map(l => { const t = S.tasks.find(x => x.id === l.taskId); return `<div style="padding:8px 0;border-bottom:1px dashed var(--line)"><div class="small muted mono">${fmtDateShort(l.date)} · ${l.percent}%</div><div style="font-weight:500">${esc(t ? t.title : '(tugasan dipadam)')}</div><div class="small">${esc(l.done)}</div></div>`; }).join('') : '<p class="muted">Belum ada log. Isi log pertama hari ini.</p>'}
@@ -905,7 +954,7 @@ function blocksOf(date) { const d = dayDoc(date); return d ? d.blocks.slice().so
 function taskOf(id) { return S.tasksD.find(t => t.id === id) || S.tasks.find(t => t.id === id) || null; }
 function currentBlock(date, hm) { return blocksOf(date).find(b => b.start <= hm && hm < b.end) || null; }
 function nextBlock(date, hm) { const today = todayISO(); let b = blocksOf(date).find(x => x.start > hm); let d = date; let n = 0; while (!b && n < 14) { d = addDays(d, 1); n++; b = blocksOf(d)[0]; } return b ? { block: b, date: d } : null; }
-function blockLabel(b) { if (!b.taskId) return 'Bebas: semakan, bacaan atau susulan e-mel'; const t = taskOf(b.taskId); return t ? t.title : '(tugasan dipadam)'; }
+function blockLabel(b) { if (b.title) return b.title; if (!b.taskId) return 'Bebas: semakan, bacaan atau susulan e-mel'; const t = taskOf(b.taskId); return t ? t.title : '(tugasan dipadam)'; }
 function reflectionLine(done) {
   const early = done.filter(t => t.doneDate && t.due && t.doneDate <= t.due).length;
   return `${done.length} tugasan telah diselesaikan, ${early} daripadanya sebelum atau tepat pada dateline. Setiap satu adalah bukti Prof Dr mampu menyiapkan baki tugasan dengan disiplin yang sama.`;
@@ -928,9 +977,10 @@ function vSchedule() {
     const brk = i < blocks.length - 1 && hmToMin(blocks[i + 1].start) - hmToMin(b.end) >= 3 && hmToMin(blocks[i + 1].start) - hmToMin(b.end) <= 15 ? `<div class="brk">☕ Rehat ${hmToMin(blocks[i + 1].start) - hmToMin(b.end)} minit</div>` : '';
     return `<div class="blk ${t ? t.variable : 'free'} ${live ? 'live' : ''} ${past ? 'past' : ''} ${b.done ? 'done' : ''}"><div class="tm mono">${b.start}<br><span class="muted">${b.end}</span></div><div class="bd"><div class="t">${esc(blockLabel(b))}</div><div class="small muted">${t ? `${chipB(t)} ${chipsV(t)} · ${t.pct}% · dateline ${fmtDateShort(t.due)} (${daysLabel(t.daysToDue)})` : 'Blok bebas'}${b.manual ? ' · 📌 manual' : ''}${b.note ? ' · ' + esc(b.note) : ''}</div></div><div class="ac"><button class="btn sm ${b.done ? 'primary' : ''}" title="Tanda siap" onclick="toggleBlockDone('${date}','${b.id}')">${b.done ? '✓' : '○'}</button><button class="btn sm ghost" title="Sunting" onclick="openBlockForm('${date}','${b.id}')">✎</button></div></div>${brk}`; }).join('')
     : `<p class="muted">${ranges.length ? 'Tiada blok pada hari ini. Tekan "Jana semula jadual".' : 'Tiada waktu kerja ditetapkan untuk hari ini.'}</p>`;
+  const dd = dayDoc(date); const goal = dd && dd.goal && dd.goal !== '-' ? `<div class="banner info">🎯 <span class="grow"><b>Hasil hari ini:</b> ${esc(dd.goal)}${dd.week ? ' · ' + esc(dd.week) : ''}</span></div>` : (dd && dd.holiday ? `<div class="banner info">🏖 <span class="grow">${esc(dd.holiday)}</span></div>` : '');
   return `<div class="pagehead"><div><h1>Jadual jam</h1><div class="sub">${fmtDate(date, true)} · waktu kerja ${ranges.map(([a, b]) => a + ' hingga ' + b).join(', ') || 'tiada'} · ${cap} minit · Pomodoro ${S.settings.pomodoroWork}/${S.settings.pomodoroBreak}. Semua blok Floating: seret dalam carta atau tekan ✎.</div></div>
     <div class="btnrow"><button class="btn" onclick="S.jadualDate=addDays(S.jadualDate,-1);render()">‹</button><button class="btn" onclick="S.jadualDate=todayISO();render()">Hari ini</button><button class="btn" onclick="S.jadualDate=addDays(S.jadualDate,1);render()">›</button><button class="btn" onclick="openBlockForm('${date}')">+ Blok</button><button class="btn primary" onclick="Scheduler.regenerate()">⟳ Jana semula jadual</button></div></div>
-  ${shortfalls.length ? `<div class="banner warn">⚠️ <span class="grow"><b>Amaran pembantu peribadi:</b> ${shortfalls.map(x => `${esc(x.title)} kekurangan kira-kira ${x.hours} jam sebelum dateline ${fmtDateShort(x.due)}`).join('; ')}. Tambah slot kerja, kurangkan skop, atau minta lanjutan sekarang, bukan minggu depan.</span></div>` : ''}
+  ${goal}${shortfalls.length ? `<div class="banner warn">⚠️ <span class="grow"><b>Amaran pembantu peribadi:</b> ${shortfalls.map(x => `${esc(x.title)} kekurangan kira-kira ${x.hours} jam sebelum dateline ${fmtDateShort(x.due)}`).join('; ')}. Tambah slot kerja, kurangkan skop, atau minta lanjutan sekarang, bukan minggu depan.</span></div>` : ''}
   <div class="daystrip">${strip}</div>
   <div class="grid two" style="grid-template-columns: minmax(300px, 1fr) minmax(300px, 1.2fr)">
     <div class="card"><h3>Blok hari ini</h3><div class="blklist">${list}</div></div>
@@ -964,6 +1014,7 @@ function openBlockForm(date, id) {
   <form class="form" onsubmit="saveBlockForm(event,'${date}','${b ? b.id : ''}')">
     <div class="row3"><div class="field"><label>Tarikh</label><input type="date" name="date" value="${date}" required></div><div class="field"><label>Mula</label><input type="time" name="start" value="${b ? b.start : '09:00'}" required></div><div class="field"><label>Tamat</label><input type="time" name="end" value="${b ? b.end : '09:30'}" required></div></div>
     <div class="field"><label>Tugasan</label><select name="taskId"><option value="">Bebas (semakan, bacaan, e-mel)</option>${active.map(t => `<option value="${t.id}" ${b && b.taskId === t.id ? 'selected' : ''}>${t.bab} · ${esc(t.title)}</option>`).join('')}</select></div>
+    <div class="field"><label>Tajuk blok (Long Text, pilihan; jika kosong tajuk tugasan digunakan)</label><textarea name="title" style="min-height:56px">${esc(b ? b.title || '' : '')}</textarea></div>
     <div class="field"><label>Nota (pilihan)</label><input name="note" value="${esc(b ? b.note || '' : '')}" placeholder="Contoh: fokus pada bahagian metodologi"></div>
     <p class="hint">Blok yang disunting ditanda 📌 manual dan tidak diubah oleh penjadual automatik.</p>
     <footer>${b ? `<button type="button" class="btn danger" onclick="Scheduler.deleteBlock('${date}','${b.id}');closeModal()">Padam blok</button>` : '<span></span>'}<div class="r"><button type="button" class="btn" onclick="closeModal()">Batal</button><button class="btn primary">Simpan</button></div></footer>
@@ -974,10 +1025,58 @@ async function saveBlockForm(e, date, id) {
   if (hmToMin(o.end) <= hmToMin(o.start)) { alert('Masa tamat mesti selepas masa mula.'); return; }
   const old = id ? blocksOf(date).find(x => x.id === id) : null;
   if (old && o.date !== date) await Scheduler.deleteBlock(date, id);
-  const nb = Object.assign({}, old || { id: uid(), done: false }, { start: o.start, end: o.end, taskId: o.taskId || null, note: (o.note || '').trim(), manual: true });
+  const nb = Object.assign({}, old || { id: uid(), done: false }, { start: o.start, end: o.end, taskId: o.taskId || null, title: (o.title || '').trim(), note: (o.note || '').trim(), manual: true });
   await Scheduler.saveBlock(o.date, nb); S.jadualDate = o.date; closeModal(); toast('Blok disimpan (manual)');
 }
 async function toggleBlockDone(date, id) { const b = blocksOf(date).find(x => x.id === id); if (!b) return; await Scheduler.saveBlock(date, Object.assign({}, b, { done: !b.done })); }
+
+/* ---------- Peta Jalan (v2.1) ---------- */
+function vRoadmap() {
+  const rm = S.roadmap || {}, tab = S.rmTab || 'tonggak', today = todayISO();
+  const tabs = [['tonggak', 'Tonggak'], ['mingguan', 'Mingguan'], ['kelulusan', 'Kelulusan'], ['pakar', 'Pakar'], ['risiko', 'Risiko dan Pelan B']];
+  const head = `<div class="pagehead"><div><h1>Peta jalan</h1><div class="sub">${esc((rm.meta && rm.meta.title) || 'Tiada peta jalan diimport.')}${rm.meta && rm.meta.subtitle ? ' · ' + esc(rm.meta.subtitle) : ''}</div></div><div class="btnrow"><label class="btn">⇧ Import peta jalan (JSON)<input type="file" accept="application/json" hidden onchange="importPlanFile(this)"></label></div></div>
+  <div class="seg" style="margin-bottom:14px">${tabs.map(([k, l]) => `<button class="${tab === k ? 'active' : ''}" onclick="S.rmTab='${k}';render()">${l}</button>`).join('')}</div>`;
+  if (!rm.meta && !milestones().length) return head + '<div class="card"><p class="muted">Import fail peta jalan daripada Tetapan atau butang di atas untuk memuatkan tonggak, jadual mingguan dan harian, kelulusan, pakar dan risiko.</p></div>';
+  if (tab === 'tonggak') {
+    const ms = milestones(); const done = ms.filter(t => t.status === 'hijau').length;
+    return head + `<div class="card"><h3>Tonggak utama <span class="chip hijau">${done} / ${ms.length} selesai</span></h3><div class="tablewrap"><table class="rm"><thead><tr><th>Bil</th><th>Tonggak</th><th>Tarikh sasaran</th><th>Baki</th><th>Bergantung kepada</th><th>Bukti siap</th><th>Status</th></tr></thead><tbody>
+    ${ms.map((t, i) => `<tr class="${t.status === 'hijau' ? 'done' : t.daysToDue != null && t.daysToDue < 0 ? 'late' : ''}" onclick="openTaskForm('${t.id}')"><td class="mono">${i + 1}</td><td><b>${esc(t.title)}</b><div class="small muted">${chipB(t)} ${chipsV(t)}</div></td><td class="mono">${fmtDateShort(t.due)}</td><td>${t.status === 'hijau' ? '<span class="chip hijau">Selesai</span>' : daysChip(t.daysToDue)}</td><td class="small">${esc(t.dependsOn || '')}</td><td class="small">${esc(t.evidence || '')}</td><td>${chipS(t.status, t.pct)}</td></tr>`).join('')}
+    </tbody></table></div><p class="hint">Klik baris untuk menyunting; tanda selesai dengan log 100 peratus.</p></div>`;
+  }
+  if (tab === 'mingguan') {
+    const weeks = rm.weeks || [];
+    return head + `<div class="card"><h3>Tugasan besar mingguan</h3><div class="tablewrap"><table class="rm"><thead><tr><th>Minggu</th><th>Tarikh</th><th>Tugasan besar</th><th>Hasil yang mesti ada</th><th>Risiko utama</th><th>Status</th></tr></thead><tbody>
+    ${weeks.map((w, i) => `<tr class="${w.from <= today && today <= w.to ? 'now' : ''} ${w.status === 'Selesai' ? 'done' : ''}"><td class="mono"><b>${esc(w.week)}</b></td><td class="small mono">${esc(w.range)}</td><td><b>${esc(w.task)}</b></td><td class="small">${esc(w.outcome)}</td><td class="small muted">${esc(w.risk)}</td><td><button class="btn sm ${w.status === 'Selesai' ? 'primary' : ''}" onclick="rmToggle('weeks',${i})">${w.status === 'Selesai' ? '✓ Selesai' : 'Belum'}</button></td></tr>`).join('')}
+    </tbody></table></div></div>`;
+  }
+  if (tab === 'kelulusan') {
+    const rows = rm.approvals || [];
+    return head + `<div class="card"><h3>Kelulusan dan surat</h3><div class="tablewrap"><table class="rm"><thead><tr><th>Kelulusan</th><th>Kepada</th><th>Dokumen</th><th>Hantar</th><th>Dijangka</th><th>Diterima</th><th>No. rujukan</th><th>Catatan</th></tr></thead><tbody>
+    ${rows.map((r, i) => `<tr class="${r.received ? 'done' : ''}"><td><b>${esc(r.name)}</b></td><td class="small">${esc(r.to)}</td><td class="small muted">${esc(r.docs)}</td><td class="mono small">${esc(r.sent)}</td><td class="mono small">${esc(r.expected)}</td><td><input class="rmin" value="${esc(r.received || '')}" placeholder="dd/mm/yyyy" onchange="rmSet('approvals',${i},'received',this.value)"></td><td><input class="rmin" value="${esc(r.ref || '')}" placeholder="no." onchange="rmSet('approvals',${i},'ref',this.value)"></td><td class="small muted">${esc(r.note || '')}${r.validity && r.validity !== '-' ? ' · Sah: ' + esc(r.validity) : ''}</td></tr>`).join('')}
+    </tbody></table></div></div>`;
+  }
+  if (tab === 'pakar') {
+    const rows = rm.experts || [];
+    return head + `<div class="card"><h3>Panel pakar dan penterjemah</h3><div class="tablewrap"><table class="rm"><thead><tr><th>Peranan</th><th>Nama</th><th>Institusi</th><th>Dokumen</th><th>Hantar</th><th>Pulang dijangka</th><th>Pulang sebenar</th><th>Status</th></tr></thead><tbody>
+    ${rows.map((r, i) => `<tr class="${r.actual ? 'done' : ''}"><td class="small">${esc(r.role)}</td><td><b>${esc(r.name)}</b></td><td class="small">${esc(r.institution)}</td><td class="small muted">${esc(r.docs)}</td><td class="mono small">${esc(r.sent)}</td><td class="mono small">${esc(r.expected)}</td><td><input class="rmin" value="${esc(r.actual || '')}" placeholder="dd/mm/yyyy" onchange="rmSet('experts',${i},'actual',this.value)"></td><td><input class="rmin" value="${esc(r.status || '')}" onchange="rmSet('experts',${i},'status',this.value)"></td></tr>`).join('')}
+    </tbody></table></div></div>`;
+  }
+  const rows = rm.risks || [];
+  return head + `<div class="card"><h3>Risiko dan Pelan B</h3><div class="tablewrap"><table class="rm"><thead><tr><th>Risiko</th><th>Kesan</th><th>Tanda awal</th><th>Tindakan pencegahan</th><th>Pelan pemulihan</th></tr></thead><tbody>
+    ${rows.map(r => `<tr><td><b>${esc(r.risk)}</b></td><td class="small">${esc(r.impact)}</td><td class="small">${esc(r.signal)}</td><td class="small">${esc(r.prevention)}</td><td class="small">${esc(r.recovery)}</td></tr>`).join('')}
+    </tbody></table></div></div>`;
+}
+async function rmToggle(key, i) { const rm = Object.assign({}, S.roadmap); const arr = (rm[key] || []).slice(); arr[i] = Object.assign({}, arr[i], { status: arr[i].status === 'Selesai' ? 'Belum' : 'Selesai' }); rm[key] = arr; await S.store.saveRoadmap(rm); }
+async function rmSet(key, i, field, val) { const rm = Object.assign({}, S.roadmap); const arr = (rm[key] || []).slice(); arr[i] = Object.assign({}, arr[i], { [field]: val.trim() }); rm[key] = arr; await S.store.saveRoadmap(rm); toast('Disimpan'); }
+async function importPlanFile(inp) { const f = inp.files[0]; if (!f) return; try { const obj = JSON.parse(await f.text()); const r = await importPlan(obj); toast(`Peta jalan diimport: ${r.tasks} tonggak, ${r.days} hari, ${r.blocks} blok, ${r.weeks} minggu`, 5000); S.view = 'petajalan'; render(); } catch (e) { alert('Import gagal: ' + e.message); } }
+function weekFocusCard() {
+  const w = currentWeekPlan(todayISO()); if (!w) return '';
+  return `<div class="card focus" style="margin-bottom:14px"><div class="pagehead" style="margin-bottom:4px"><h3>📌 Fokus minggu ini · ${esc(w.week)} (${esc(w.range)})</h3><a class="btn sm" href="#/petajalan">Peta jalan</a></div><div class="t">${esc(w.task)}</div><div class="small" style="margin-top:4px"><b>Hasil yang mesti ada:</b> ${esc(w.outcome)}</div><div class="small muted"><b>Risiko:</b> ${esc(w.risk)}</div></div>`;
+}
+function countdownCard() {
+  const up = upcomingMilestones(); if (!up.length) return '';
+  return `<div class="card"><h3>⏳ Dateline menjelang (${S.settings.countdownDays || 14} hari)</h3><div class="cdlist">${up.map(t => `<div class="cd ${t.daysToDue < 0 ? 'late' : t.daysToDue <= 3 ? 'soon' : ''}" onclick="openTaskForm('${t.id}')"><div class="n mono">${t.daysToDue < 0 ? '−' + (-t.daysToDue) : t.daysToDue}</div><div><div class="t">${esc(t.title)}</div><div class="small muted">${fmtDateShort(t.due)} · ${t.pct}% · ${daysLabel(t.daysToDue)}</div></div></div>`).join('')}</div></div>`;
+}
 
 /* ---------- Tetapan ---------- */
 function vSettings() {
@@ -1013,7 +1112,9 @@ function vSettings() {
     <div class="btnrow" style="margin-top:8px"><button class="btn sm primary" onclick="Scheduler.regenerate()">⟳ Jana semula jadual sekarang</button></div>
   </section>
   <section><h3>Alarm tegas dan Pomodoro</h3>
-    ${sw('sternAlarm', 'Alarm tegas setiap jam', 'Buzzer keras dan suara tegas pada permulaan setiap slot kerja dan setiap 60 minit selepasnya, menyebut blok yang sepatutnya dibuat.')}
+    ${sw('sternAlarm', 'Alarm tegas', 'Buzzer keras dan suara tegas yang menyebut blok semasa, kiraan detik dateline dan hasil hari ini.')}
+    <div class="field" style="margin-top:8px"><label>Kekerapan alarm tegas</label><div class="radios"><label><input type="radio" name="am" ${s.alarmMode === 'hourly' ? 'checked' : ''} onchange="saveSetting('alarmMode','hourly')">Setiap jam (waktu aktif) dan permulaan slot</label><label><input type="radio" name="am" ${s.alarmMode !== 'hourly' ? 'checked' : ''} onchange="saveSetting('alarmMode','slot')">Permulaan slot kerja dan setiap 60 minit dalam slot</label></div></div>
+    <div class="field" style="margin-top:8px"><label>Kiraan detik dateline (hari)</label><input type="number" min="3" max="60" value="${s.countdownDays}" onchange="saveSetting('countdownDays',Number(this.value)||14)"><div class="hint">Tonggak dalam tempoh ini disebut setiap alarm dan taklimat pagi.</div></div>
     ${sw('breakChime', 'Bunyi rehat Pomodoro', 'Bunyi lembut pada mula dan tamat rehat 5 minit.')}
     <div class="btnrow" style="margin-top:8px"><button class="btn sm" onclick="Reminder.sternNow(true)">Uji alarm tegas</button><button class="btn sm" onclick="Bell.chime()">Uji bunyi rehat</button></div>
   </section></div>
@@ -1031,7 +1132,7 @@ function vSettings() {
       <div class="btnrow" style="margin-top:8px"><button class="btn sm primary" onclick="connectCloud()">Sambung awan</button></div>`}
   </section>
   <section><h3>Data</h3>
-    <div class="btnrow"><button class="btn sm" onclick="download('mykajian-sandaran-'+todayISO()+'.json', S.store.exportJSON(), 'application/json')">⇩ Eksport JSON</button><label class="btn sm">⇧ Import JSON<input type="file" accept="application/json" hidden onchange="importFile(this)"></label><button class="btn sm" onclick="if(confirm('Muatkan semula 7 tugasan awal? Tugasan sedia ada dikekalkan.'))seedNow()">Muat tugasan awal</button></div>
+    <div class="btnrow"><button class="btn sm" onclick="download('mykajian-sandaran-'+todayISO()+'.json', S.store.exportJSON(), 'application/json')">⇩ Eksport JSON</button><label class="btn sm">⇧ Import sandaran JSON<input type="file" accept="application/json" hidden onchange="importFile(this)"></label><label class="btn sm primary">⇧ Import peta jalan<input type="file" accept="application/json" hidden onchange="importPlanFile(this)"></label><button class="btn sm" onclick="if(confirm('Muatkan semula 7 tugasan awal? Tugasan sedia ada dikekalkan.'))seedNow()">Muat tugasan awal</button></div>
     <div class="field" style="margin-top:10px"><label>Tema</label><div class="radios"><label><input type="radio" name="th" ${s.theme === 'auto' ? 'checked' : ''} onchange="saveSetting('theme','auto')">Ikut sistem</label><label><input type="radio" name="th" ${s.theme === 'light' ? 'checked' : ''} onchange="saveSetting('theme','light')">Cerah</label><label><input type="radio" name="th" ${s.theme === 'dark' ? 'checked' : ''} onchange="saveSetting('theme','dark')">Gelap</label></div></div>
   </section>
   <section><h3>Pemasangan dan widget</h3>
@@ -1167,6 +1268,9 @@ const Speech = {
     if (yesterdayPlan) s1 += `Rancangan yang anda tulis semalam: ${yesterdayPlan}. `;
     s1 += week.length ? `Minggu ini: ${week.length} dateline lagi, iaitu ${names(week)}. ` : 'Tiada dateline lain minggu ini. ';
     s1 += month.length ? `Bulan ini: ${month.length} dateline lagi. ` : '';
+    const w = currentWeekPlan(today); if (w) s1 += `Fokus minggu ${w.week}: ${w.task}. `;
+    const dd = dayDoc(today); if (dd && dd.goal && dd.goal !== '-') s1 += `Hasil yang mesti ada hari ini: ${dd.goal}. `;
+    const cd = countdownText(4); if (cd) s1 += `Kiraan detik tonggak: ${cd} `;
     s1 += logsToday.length ? 'Log hari ini sudah diisi, terima kasih.' : `Jangan lupa isi log progress sebelum ${s.logDeadline.replace(':', ' ')}.`;
     return s1;
   },
@@ -1250,7 +1354,9 @@ const Scheduler = {
   },
   async saveBlock(date, block) { const d = dayDoc(date) || { id: date, date, blocks: [] }; const blocks = d.blocks.filter(b => b.id !== block.id); blocks.push(block); blocks.sort((a, b) => a.start.localeCompare(b.start)); await S.store.upsertDays([Object.assign({}, d, { blocks })]); },
   async deleteBlock(date, id) { const d = dayDoc(date); if (!d) return; await S.store.upsertDays([Object.assign({}, d, { blocks: d.blocks.filter(b => b.id !== id) })]); },
-  alarmTimes(date) { const out = []; this.rangesFor(date).forEach(([a, b]) => { for (let t = hmToMin(a); t < hmToMin(b); t += 60) out.push(minToHM(t)); }); return out; }
+  alarmTimes(date) { const out = new Set(); this.rangesFor(date).forEach(([a, b]) => { for (let t = hmToMin(a); t < hmToMin(b); t += 60) out.add(minToHM(t)); });
+    if (S.settings.alarmMode === 'hourly') { const a = hmToMin(S.settings.activeStart || '08:00'), b = hmToMin(S.settings.activeEnd || '22:00'); for (let t = Math.ceil(a / 60) * 60; t <= b; t += 60) out.add(minToHM(t)); }
+    return [...out].sort(); }
 };
 
 /* ---------- Penjadual peringatan ---------- */
@@ -1285,12 +1391,16 @@ const Reminder = {
     else if (cur) msg += 'Blok ini bebas. Gunakan untuk semakan atau susulan e-mel, jangan biarkan kosong.';
     else if (nxt) msg += `Tiada blok sekarang. Blok seterusnya ${nxt.date === today ? '' : fmtDateShort(nxt.date) + ' '}pukul ${fmtHM12(nxt.block.start)}: ${blockLabel(nxt.block)}. Bersedia.`;
     else msg += 'Tiada jadual dijana. Buka MyKajian dan tekan Jana semula jadual sekarang.';
+    const cd = countdownText(3); if (cd) msg += ` Kiraan detik: ${cd}`;
+    const dd = dayDoc(today); if (dd && dd.goal && dd.goal !== '-' && (!cur || Local.get('goalSpoken', '') !== today)) { msg += ` Hasil yang mesti ada hari ini: ${dd.goal}.`; Local.set('goalSpoken', today); }
     return msg;
   },
   sternNow(test) { Bell.buzzer(4); setTimeout(() => Speech.say(this.sternText(), { stern: true }), 1900); Local.set('lastSpokenAt', Date.now()); if (test) toast('Alarm tegas diuji'); },
   checkPomodoro() {
     const s = S.settings; if (!s.breakChime) return; const today = todayISO(), hm = nowHM(); const key = today + ' ' + hm; if (Local.get('lastChime', '') === key) return;
     const blocks = blocksOf(today); const ending = blocks.find(b => b.end === hm), starting = blocks.find(b => b.start === hm);
+    const cur = currentBlock(today, hm); const cyc = (Number(s.pomodoroWork) || 30) + (Number(s.pomodoroBreak) || 5);
+    if (!ending && !starting && cur && !starting) { const off = hmToMin(hm) - hmToMin(cur.start); const rem = hmToMin(cur.end) - hmToMin(hm); if (off > 0 && rem > 10) { const m = off % cyc; if (m === (Number(s.pomodoroWork) || 30)) { Local.set('lastChime', key); if (!Scheduler.alarmTimes(today).includes(hm)) { Bell.chime(); setTimeout(() => Speech.say(`Rehat ${s.pomodoroBreak} minit. Bangun, regangkan badan, minum air.`), 900); } return; } if (m === 0) { Local.set('lastChime', key); if (!Scheduler.alarmTimes(today).includes(hm)) { Bell.chime(); setTimeout(() => Speech.say(`Sambung kerja: ${blockLabel(cur)}.`), 900); } return; } } }
     if (!ending && !starting) return; Local.set('lastChime', key);
     if (Scheduler.alarmTimes(today).includes(hm)) return; // alarm tegas sudah mengambil alih pada minit ini
     Bell.chime();
@@ -1312,7 +1422,8 @@ function widgetHTML(selDate) {
   const today = todayISO(), ws = weekStart(today), sel = selDate || S.widgetSel || today; const tab = S.widgetTab || 'sekarang';
   const T = S.tasksD.filter(t => t.status !== 'hijau');
   const hm = nowHM(); const cur = currentBlock(today, hm), nxt = nextBlock(today, hm);
-  const nowline = cur ? `<div class="wgnow live"><div class="s">⏱ SEKARANG ${cur.start} hingga ${cur.end}</div><div class="t">${esc(blockLabel(cur))}</div></div>` : nxt ? `<div class="wgnow"><div class="s">⏱ SETERUSNYA ${nxt.date === today ? '' : fmtDateShort(nxt.date) + ' '}${nxt.block.start}</div><div class="t">${esc(blockLabel(nxt.block))}</div></div>` : '';
+  const wk = currentWeekPlan(today); const wkline = wk ? `<div class="wgweek">📌 ${esc(wk.week)}: ${esc(wk.task)}</div>` : '';
+  const nowline = wkline + (cur ? `<div class="wgnow live"><div class="s">⏱ SEKARANG ${cur.start} hingga ${cur.end}</div><div class="t">${esc(blockLabel(cur))}</div></div>` : nxt ? `<div class="wgnow"><div class="s">⏱ SETERUSNYA ${nxt.date === today ? '' : fmtDateShort(nxt.date) + ' '}${nxt.block.start}</div><div class="t">${esc(blockLabel(nxt.block))}</div></div>` : '');
   const strip = Array.from({ length: 7 }, (_, i) => { const d = addDays(ws, i), dd = fromISO(d); const ev = T.filter(t => t.due === d || t.target === d);
     return `<button class="${d === today ? 'today' : ''} ${d === sel ? 'sel' : ''}" data-d="${d}">${DAYS_S[dd.getDay()]}<b>${dd.getDate()}</b><span class="c">${ev.slice(0, 4).map(t => `<i style="background:var(--${t.variable.toLowerCase()})"></i>`).join('')}</span></button>`; }).join('');
   const dayT = T.filter(t => t.due === sel || t.target === sel || (t.start && t.due && t.start <= sel && sel <= t.due)).sort((a, b) => (a.due === sel ? 0 : 1) - (b.due === sel ? 0 : 1) || a.due.localeCompare(b.due));
@@ -1351,7 +1462,7 @@ const Helpdesk = {
     const today = todayISO(), s = S.settings;
     const tasks = S.tasksD.filter(t => t.status !== 'hijau').map(t => ({ tajuk: t.title, pembolehubah: VARS[t.variable].short, mula: t.start, dateline: t.due, target: t.target || null, peratus: t.pct, status: STATUS_LABEL[t.status], hari_ke_dateline: t.daysToDue, huraian: (t.description || '').slice(0, 300), log_terakhir: t.lastLog ? { tarikh: t.lastLog.date, disiapkan: t.lastLog.done, halangan: t.lastLog.blockers || '' } : null }));
     const logs = S.logs.filter(l => l.date >= addDays(today, -14)).sort((a, b) => b.date.localeCompare(a.date)).slice(0, 30).map(l => ({ tarikh: l.date, tugasan: (S.tasks.find(t => t.id === l.taskId) || {}).title, disiapkan: l.done, halangan: l.blockers, peratus: l.percent }));
-    return { tarikh_hari_ini: today, hari: DAYS[new Date().getDay()], jam_kerja_sehari: s.workHoursPerDay, waktu_kerja_mingguan: Object.fromEntries([0,1,2,3,4,5,6].map(d => [DAYS[d], (Scheduler.rangesFor(addDays(weekStart(today), (d + 6) % 7))).map(r => r.join('-'))])), pomodoro: `${s.pomodoroWork} minit kerja, ${s.pomodoroBreak} minit rehat`, jadual_hari_ini: blocksOf(today).map(b => `${b.start}-${b.end} ${blockLabel(b)}`), kekurangan_masa: Scheduler.shortfalls(), tugasan_aktif: tasks, log_14_hari: logs };
+    return { tarikh_hari_ini: today, hari: DAYS[new Date().getDay()], jam_kerja_sehari: s.workHoursPerDay, waktu_kerja_mingguan: Object.fromEntries([0,1,2,3,4,5,6].map(d => [DAYS[d], (Scheduler.rangesFor(addDays(weekStart(today), (d + 6) % 7))).map(r => r.join('-'))])), pomodoro: `${s.pomodoroWork} minit kerja, ${s.pomodoroBreak} minit rehat`, jadual_hari_ini: blocksOf(today).map(b => `${b.start}-${b.end} ${blockLabel(b)}`), kekurangan_masa: Scheduler.shortfalls(), fokus_minggu_ini: currentWeekPlan(today), tonggak_menjelang: upcomingMilestones(30).map(t => ({ tonggak: t.title, tarikh: t.due, baki_hari: t.daysToDue, peratus: t.pct })), risiko: ((S.roadmap || {}).risks || []).map(r => r.risk), tugasan_aktif: tasks, log_14_hari: logs };
   },
   systemPrompt() {
     return `Anda ialah pembantu peribadi profesional (Personal Assistant) kepada seorang calon PhD di Malaysia (gelaran: ${S.settings.userTitle}). Anda bertanggungjawab memastikan beliau tidak gagal: tegas tetapi hormat, berterus terang tentang risiko dateline, dan sentiasa memberi langkah konkrit seterusnya. Beliau yang mengkaji pengaruh kepimpinan digital guru besar (IV) terhadap kompetensi digital guru (DV) dengan pengurusan pengetahuan digital organisasi sebagai perantara. Jawab sepenuhnya dalam Bahasa Melayu Malaysia yang formal, ringkas dan praktikal. Jangan gunakan em-dash. Gunakan tajuk Markdown (##), senarai dan jadual apabila sesuai. Sentiasa rujuk tarikh sebenar. Apabila diminta jadual, berikan: (1) tugasan bertindih dan cadangan susunan keutamaan dengan alasan, (2) jadual hari ini dengan blok masa, (3) jadual minggu ini mengikut hari, (4) pencapaian bulan ini, (5) anggaran tempoh setiap tugasan beserta langkah kerja (kaedah) yang konkrit. Peringatkan jika beban melebihi jam kerja sehari yang tersedia.`;

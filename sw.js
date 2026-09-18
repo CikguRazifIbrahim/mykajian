@@ -1,5 +1,5 @@
 /* MyKajian service worker: simpan apps dan pustaka untuk kegunaan luar talian */
-const CACHE = 'mykajian-v2.0.0';
+const CACHE = 'mykajian-v2.1.0';
 const CORE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-512-maskable.png',
   'https://cdnjs.cloudflare.com/ajax/libs/vis-timeline/8.5.4/vis-timeline-graph2d.min.js'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => Promise.allSettled(CORE.map(u => c.add(u)))).then(() => self.skipWaiting())); });
