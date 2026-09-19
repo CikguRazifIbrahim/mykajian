@@ -1,5 +1,5 @@
 /* MyKajian service worker: simpan apps dan pustaka untuk kegunaan luar talian */
-const CACHE = 'mykajian-v2.1.1';
+const CACHE = 'mykajian-v2.1.2';
 const CORE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-512-maskable.png', './vis-timeline.min.js'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => Promise.allSettled(CORE.map(u => c.add(u)))).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

@@ -389,6 +389,9 @@ table.rm { font-size: 13.5px; } table.rm th, table.rm td { padding: 8px 10px; bo
   probe('gstatic.com', 'https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js');
   probe('firestore.googleapis.com', 'https://firestore.googleapis.com/');
   probe('identitytoolkit.googleapis.com', 'https://identitytoolkit.googleapis.com/');
+  B.net['mykajian-ebe7e.firebaseapp.com'] = 'menguji…'; probe('mykajian-ebe7e.firebaseapp.com', 'https://mykajian-ebe7e.firebaseapp.com/__/auth/iframe');
+  B.net['apis.google.com'] = 'menguji…'; probe('apis.google.com', 'https://apis.google.com/js/api.js');
+  try { B.redirect = Object.keys(sessionStorage).filter(function (k) { return /^firebase:pendingRedirect/.test(k); }).length ? 'ADA tanda ubah hala tertunda' : 'tiada'; } catch (e) { B.redirect = 'GAGAL: ' + e.message; }
   window.netSummary = function () { var out = []; for (var k in B.net) out.push(k + ': ' + B.net[k]); return out.join(' · '); };
   function rec(msg) { B.errs.push(Math.round((Date.now() - B.t0) / 100) / 10 + 's: ' + msg); if (!B.done) showBootPanel(); }
   window.addEventListener('error', function (e) { rec((e.message || 'ralat') + (e.filename ? ' @' + String(e.filename).split('/').pop() + ':' + e.lineno : '')); });
@@ -397,7 +400,7 @@ table.rm { font-size: 13.5px; } table.rm th, table.rm td { padding: 8px 10px; bo
   window.bootDiag = function () {
     var d = { versi: (typeof APP_VERSION !== 'undefined' ? APP_VERSION : 'tidak dimuat'), masa: new Date().toString(), url: location.href, peringkat: B.stage, jejak: B.stages.join(' → '), ralat: B.errs, rangkaian: netSummary(), dalamTalian: navigator.onLine, pelayar: navigator.userAgent, skrin: screen.width + 'x' + screen.height + ' (tetingkap ' + innerWidth + 'x' + innerHeight + ')', sw: !!(navigator.serviceWorker && navigator.serviceWorker.controller), storanTempatan: 'tidak diuji', indexedDB: 'tidak diuji' };
     try { localStorage.setItem('mykajian.__ujian', '1'); localStorage.removeItem('mykajian.__ujian'); d.storanTempatan = 'OK'; } catch (e) { d.storanTempatan = 'GAGAL: ' + e.message; }
-    d.indexedDB = B.idb;
+    d.indexedDB = B.idb; d.ubahHalaTertunda = B.redirect;
     return d;
   };
   window.bootReset = function () {
@@ -433,7 +436,7 @@ table.rm { font-size: 13.5px; } table.rm th, table.rm td { padding: 8px 10px; bo
 /* Fasa 2: tampal konfigurasi Firebase di sini ATAU dalam Tetapan apps. */
 const FIREBASE_CONFIG = {"apiKey": "AIzaSyDuDUS6pVbVlTOY9Z2veIodiCxnL-8pOQc", "authDomain": "mykajian-ebe7e.firebaseapp.com", "projectId": "mykajian-ebe7e", "storageBucket": "mykajian-ebe7e.firebasestorage.app", "messagingSenderId": "351646083181", "appId": "1:351646083181:web:cbe520f6168564a6687764"};
 const FIREBASE_VERSION = '12.18.0';
-const APP_VERSION = '2.1.1';
+const APP_VERSION = '2.1.2';
 
 const VARS = {
   IV:   { code: 'IV',   short: 'IV',        name: 'Kepimpinan Digital Guru Besar', role: 'Pembolehubah bebas' },
@@ -569,20 +572,34 @@ class LocalStore {
 
 /* ---------- Store: Firestore (awan, luar talian terbina dalam) ---------- */
 class CloudStore {
-  constructor(config) { this.mode = 'cloud'; this.config = config; this.data = { tasks: [], logs: [], helpdesk: [], days: [], roadmap: {}, settings: {} }; this.listeners = []; this.pending = 0; this.user = null; this.ready = false; this.serverReady = {}; this.unsubs = []; this.online = navigator.onLine; }
-  async init() {
+  constructor(config, opts = {}) { this.mode = 'cloud'; this.config = config; this.noStorage = !!opts.noStorage; this.data = { tasks: [], logs: [], helpdesk: [], days: [], roadmap: {}, settings: {} }; this.listeners = []; this.pending = 0; this.user = null; this.ready = false; this.serverReady = {}; this.unsubs = []; this.online = navigator.onLine; }
+  static async modules() {
+    if (CloudStore._mods) return CloudStore._mods;
     const v = FIREBASE_VERSION, base = `https://www.gstatic.com/firebasejs/${v}/`;
-    const st = s => { try { if (window.bootStage) bootStage(s); } catch (e) {} };
-    st('memuat modul Firebase dari gstatic.com');
     const [app, auth, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
+    CloudStore._mods = { app, auth, fs }; return CloudStore._mods;
+  }
+  async init() {
+    const st = s => { try { if (window.bootStage) bootStage(s); } catch (e) {} };
+    const tag = this.noStorage ? ' (tanpa storan pelayar)' : '';
+    st('memuat modul Firebase dari gstatic.com');
+    const { app, auth, fs } = await CloudStore.modules();
     this.fb = { app, auth, fs };
-    st('modul Firebase dimuat; memulakan apps');
-    this.app = app.initializeApp(this.config);
-    this.auth = auth.getAuth(this.app);
-    try {
-      this.db = fs.initializeFirestore(this.app, { localCache: fs.persistentLocalCache({ tabManager: fs.persistentMultipleTabManager() }) });
-    } catch (e) { st('cache Firestore gagal (' + (e.code || e.message) + '); guna memori'); this.db = fs.getFirestore(this.app); }
-    st('Firestore dimulakan; menunggu status log masuk');
+    st('modul Firebase dimuat; memulakan apps' + tag);
+    // Percubaan kedua menggunakan nama apps berbeza supaya tidak berlanggar dengan percubaan pertama yang tergantung
+    this.app = this.noStorage ? app.initializeApp(this.config, 'tanpa-storan') : app.initializeApp(this.config);
+    if (this.noStorage) {
+      // Tanpa IndexedDB dan tanpa penyelesai ubah hala (iframe authDomain) yang boleh tergantung; log masuk Google menggunakan popup dengan penyelesai eksplisit
+      try { Object.keys(sessionStorage).filter(k => /^firebase:pendingRedirect/.test(k)).forEach(k => sessionStorage.removeItem(k)); } catch (e) {}
+      this.auth = auth.initializeAuth(this.app, { persistence: auth.browserLocalPersistence });
+      this.db = fs.initializeFirestore(this.app, { localCache: fs.memoryLocalCache() });
+    }
+    else {
+      this.auth = auth.getAuth(this.app);
+      try { this.db = fs.initializeFirestore(this.app, { localCache: fs.persistentLocalCache({ tabManager: fs.persistentMultipleTabManager() }) }); }
+      catch (e) { st('cache Firestore gagal (' + (e.code || e.message) + '); guna memori'); this.db = fs.getFirestore(this.app); }
+    }
+    st('Firestore dimulakan; menunggu status log masuk' + tag);
     await new Promise(res => { const un = auth.onAuthStateChanged(this.auth, u => { this.user = u; st(u ? 'log masuk sebagai ' + (u.email || u.uid) : 'belum log masuk'); this._onAuth(); res(); }); this._unAuth = un; });
     window.addEventListener('online', () => { this.online = true; this._notify(); });
     window.addEventListener('offline', () => { this.online = false; this._notify(); });
@@ -611,7 +628,7 @@ class CloudStore {
   _ref(col, id) { return this.fb.fs.doc(this.db, 'users', this.user.uid, col, id); }
   async signInEmail(email, pass) { const { auth } = this.fb; try { await auth.signInWithEmailAndPassword(this.auth, email, pass); } catch (e) { if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') throw e; throw e; } }
   async createEmail(email, pass) { const { auth } = this.fb; await auth.createUserWithEmailAndPassword(this.auth, email, pass); }
-  async signInGoogle() { const { auth } = this.fb; const p = new auth.GoogleAuthProvider(); try { await auth.signInWithPopup(this.auth, p); } catch (e) { await auth.signInWithRedirect(this.auth, p); } }
+  async signInGoogle() { const { auth } = this.fb; const p = new auth.GoogleAuthProvider(); if (this.noStorage) { await auth.signInWithPopup(this.auth, p, auth.browserPopupRedirectResolver); return; } try { await auth.signInWithPopup(this.auth, p); } catch (e) { await auth.signInWithRedirect(this.auth, p); } }
   async signOut() { await this.fb.auth.signOut(this.auth); }
   _w(p) { return p.catch(e => { console.error(e); toast('Gagal simpan: ' + (e.code || e.message)); }); }
   async upsertTask(t) { t.updatedAt = Date.now(); t.createdAt = t.createdAt || Date.now(); this.fb.fs.setDoc(this._ref('tasks', t.id), t).catch(e => toast('Gagal simpan tugasan')); this._optimistic('tasks', t); }
@@ -652,11 +669,11 @@ function applyTheme() { const t = S.settings.theme; if (t === 'light' || t === '
 function renderSync() {
   const b = $('#syncBadge'), t = $('#syncText'); if (!b) return; b.className = 'sync';
   if (S.store.mode === 'local') { t.textContent = 'Mod tempatan'; $('#navMode').textContent = 'Mod tempatan · peranti ini sahaja'; return; }
-  if (!S.store.user) { b.classList.add('off'); t.textContent = 'Belum log masuk'; $('#navMode').textContent = 'Awan · belum log masuk'; return; }
+  if (!S.store.user) { b.classList.add('off'); t.textContent = 'Belum log masuk'; $('#navMode').textContent = 'Awan · belum log masuk' + (S.store.noStorage ? ' · tanpa storan pelayar' : ''); return; }
   if (!navigator.onLine) { b.classList.add('off'); t.textContent = S.store.pending ? `Luar talian · ${S.store.pending} menunggu` : 'Luar talian · disimpan tempatan'; }
   else if (S.store.pending) { b.classList.add('pending'); t.textContent = `Menyegerak ${S.store.pending}…`; }
   else { b.classList.add('ok'); t.textContent = 'Disegerakkan'; }
-  $('#navMode').textContent = 'Awan · ' + (S.store.user.email || 'log masuk');
+  $('#navMode').textContent = 'Awan · ' + (S.store.user.email || 'log masuk') + (S.store.noStorage ? ' · tanpa storan pelayar' : '');
 }
 
 /* ---------- data awal (Fasa 1) ---------- */
@@ -746,6 +763,7 @@ function renderBanners() {
   const b = $('#banners'); if (!b) return; const out = [];
   if (S.alarm.active) out.push(`<div class="banner alarm">🔔 <b>Log progress hari ini belum diisi.</b><span class="grow">Loceng akan terus berbunyi sehingga log disimpan.</span><button class="btn sm primary" onclick="openLogForm()">Isi sekarang</button><button class="btn sm" onclick="Reminder.snooze()">Tunda 15 minit</button></div>`);
   if (S.store.mode === 'local' && S.cloudError) out.push(`<div class="banner alarm">☁️ <span class="grow"><b>Storan awan gagal dimuatkan</b> (${esc(S.cloudError)}${S.cloudStage ? '; tersangkut pada: ' + esc(S.cloudStage) : ''}). Ujian rangkaian: ${esc(typeof netSummary === 'function' ? netSummary() : '')}. Paparan ini menggunakan data tempatan lama pada peranti ini, bukan data awan Prof Dr. Jika pelayar ini menggunakan profil yang diurus organisasi atau pemalam penapis, buka apps dalam profil Chrome peribadi atau Microsoft Edge.</span><button class="btn sm primary" onclick="location.reload()">Cuba semula</button><button class="btn sm" onclick="showBootPanel(true)">Diagnostik</button></div>`);
+  if (S.store.mode === 'cloud' && S.storageWarning) out.push(`<div class="banner warn">🗄️ <span class="grow"><b>Storan pelayar bermasalah.</b> ${esc(S.storageWarning)} Untuk memulihkan: buka <code>chrome://settings/content/siteDetails?site=https://cikgurazifibrahim.github.io</code>, tekan <b>Delete data</b>, kemudian muat semula dan log masuk semula.</span><button class="btn sm" onclick="showBootPanel(true)">Diagnostik</button><button class="btn sm" onclick="Local.set('cloudNoStorage',null);location.replace(location.pathname+'?storan=1'+location.hash)">Cuba storan semula</button><button class="btn sm" onclick="bootReset()">Muat semula bersih</button></div>`);
   else if (S.store.mode === 'local') out.push(`<div class="banner info">💾 <span class="grow"><b>Mod tempatan.</b> Data disimpan dalam pelayar peranti ini sahaja. Sambungkan storan awan dalam Tetapan untuk sync merentas peranti.</span><a class="btn sm" href="#/tetapan">Tetapan</a></div>`);
   else if (!S.store.user) out.push(`<div class="banner warn">🔐 <span class="grow">Storan awan disambungkan tetapi belum log masuk.</span><button class="btn sm primary" onclick="openAuth()">Log masuk</button></div>`);
   if (S.installPrompt && !Local.get('installDismissed', false)) out.push(`<div class="banner info">📲 <span class="grow">Pasang MyKajian sebagai aplikasi pada peranti ini.</span><button class="btn sm primary" onclick="PWA.install()">Pasang</button><button class="btn sm ghost" onclick="Local.set('installDismissed',true);render()">Nanti</button></div>`);
@@ -1607,8 +1625,17 @@ async function boot() {
   const cfg = /[?&]local=1/.test(location.search) ? null : (FIREBASE_CONFIG || Local.get('firebaseConfig', null));
   if (cfg) {
     stage('memuat Firebase (awan)');
-    try { S.store = await Promise.race([new CloudStore(cfg).init(), new Promise((_, rej) => setTimeout(() => rej(new Error('tamat masa 20 saat')), 20000))]); }
-    catch (e) { console.error(e); S.cloudError = (e.code || e.message || String(e)); S.cloudStage = (window.__boot && window.__boot.stage) || ''; stage('awan gagal: ' + S.cloudError); S.store = await new LocalStore().init(); }
+    const timeout = (ms, label) => new Promise((_, rej) => setTimeout(() => rej(new Error(label)), ms));
+    const remembered = Local.get('cloudNoStorage', null); // kegagalan storan pelayar yang diingati (7 hari)
+    const skipFirst = remembered && (Date.now() - (remembered.at || 0) < 7 * 86400000) && !/[?&]storan=1/.test(location.search);
+    try { if (skipFirst) throw Object.assign(new Error(remembered.reason || 'storan pelayar diingati bermasalah'), { remembered: true, stage: remembered.stage || '' }); S.store = await Promise.race([new CloudStore(cfg).init(), timeout(12000, 'tamat masa 12 saat')]); Local.set('cloudNoStorage', null); }
+    catch (e1) {
+      if (!e1.remembered) console.error(e1); const first = (e1.code || e1.message || String(e1)), firstStage = e1.remembered ? e1.stage : ((window.__boot && window.__boot.stage) || '');
+      // Percubaan kedua: sambung ke awan tanpa IndexedDB (storan pelayar tersekat atau rosak)
+      stage('percubaan kedua tanpa storan pelayar (sebab: ' + first + ')');
+      try { S.store = await Promise.race([new CloudStore(cfg, { noStorage: true }).init(), timeout(12000, 'tamat masa 12 saat')]); if (!e1.remembered) Local.set('cloudNoStorage', { at: Date.now(), reason: first, stage: firstStage }); S.storageWarning = 'Storan pelayar ini tidak menjawab (' + first + '; ' + firstStage + '). Apps disambungkan ke awan tanpa storan tempatan: data dimuat terus dari awan dan mod luar talian tidak tersedia pada pelayar ini sehingga data laman dipadam dan dimuat semula.' + (window.__boot && /^ADA/.test(window.__boot.redirect || '') ? ' Tab ini juga membawa tanda log masuk Google yang tertunda; tutup tab ini dan buka apps dalam tab baharu.' : ''); }
+      catch (e2) { console.error(e2); S.cloudError = first + ' → percubaan kedua: ' + (e2.code || e2.message || String(e2)); S.cloudStage = firstStage; stage('awan gagal: ' + S.cloudError); S.store = await new LocalStore().init(); }
+    }
   }
   else S.store = await new LocalStore().init();
   stage('storan sedia (' + S.store.mode + (S.store.user ? ', log masuk' : '') + ')');
